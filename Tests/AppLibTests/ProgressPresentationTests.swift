@@ -41,8 +41,8 @@ struct ProgressPresentationTests {
         #expect(TimeOverlayOpacity.normalized(0.44) == 0.4)
         #expect(TimeOverlayOpacity.normalized(-1) == 0)
         #expect(TimeOverlayOpacity.normalized(2) == 1)
-        #expect(TimeOverlayOpacity.emphasisOpacity(for: 0) == 0)
-        #expect(TimeOverlayOpacity.emphasisOpacity(for: 0.4) == 0.7)
-        #expect(TimeOverlayOpacity.emphasisOpacity(for: 0.8) == 1)
+        #expect(TimeOverlayOpacity.boundaryOpacity(for: 0) == 0)
+        #expect(TimeOverlayOpacity.boundaryOpacity(for: 0.4) == 0.25)
+        #expect(TimeOverlayOpacity.boundaryOpacity(for: 0.8) == 0.65)
     }
 }

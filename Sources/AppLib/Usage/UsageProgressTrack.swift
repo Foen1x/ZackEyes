@@ -137,19 +137,19 @@ struct UsageProgressTrack: View {
     private func timeLayer(presentation: ProgressPresentation, width: CGFloat) -> some View {
         let overlayOpacity = TimeOverlayOpacity.normalized(timeOverlayOpacity)
         if overlayOpacity > 0 {
-            let emphasisOpacity = TimeOverlayOpacity.emphasisOpacity(for: overlayOpacity)
+            let boundaryOpacity = TimeOverlayOpacity.boundaryOpacity(for: overlayOpacity)
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: height / 2)
                     .fill(overlapColor.opacity(overlayOpacity))
                     .frame(width: width * CGFloat(presentation.fraction), height: height)
                     .overlay {
                         RoundedRectangle(cornerRadius: height / 2)
-                            .stroke(overlapColor.opacity(emphasisOpacity), lineWidth: 1)
+                            .stroke(overlapColor.opacity(boundaryOpacity), lineWidth: 1)
                     }
                     .frame(width: width, height: height, alignment: alignment(for: presentation.anchor))
 
                 Rectangle()
-                    .fill(overlapColor.opacity(emphasisOpacity))
+                    .fill(overlapColor.opacity(boundaryOpacity))
                     .frame(width: TimeWindowProgress.endpointWidth, height: height)
                     .offset(x: TimeWindowProgress.endpointOffset(
                         fraction: presentation.fraction,

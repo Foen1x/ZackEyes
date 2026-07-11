@@ -10,7 +10,7 @@ Persist `timeProgressMode` in `~/.zackeyes/config.json` with three values:
 
 - `off` (default): existing bars are unchanged.
 - `icon`: a deep ochre clock sits at the elapsed-time position. It straddles the track vertically; the portion intersecting the track is hollow so the full symbol stays legible over every usage color.
-- `overlap`: a translucent light-gray fill runs from the leading edge to the elapsed-time position. When elapsed time is longer than quota usage it renders below the usage fill; otherwise it renders above, including when both are equal. Its opacity is user-configurable from 0% to 100% in 10% steps (default 40%); its same-color 1px border and endpoint are 30 percentage points more opaque, capped at 100%.
+- `overlap`: a translucent light-gray fill runs from the leading edge to the elapsed-time position. When elapsed time is longer than quota usage it renders below the usage fill; otherwise it renders above, including when both are equal. Its opacity is user-configurable from 0% to 100% in 10% steps (default 40%); its same-color 1px border and endpoint are 15 percentage points less opaque, floored at 0%.
 
 The setting appears in Settings > General > Dynamic Island as an `Off / Icon / Overlap` segmented picker and applies immediately.
 

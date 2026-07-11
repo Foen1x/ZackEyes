@@ -53,7 +53,7 @@ Time follows the same presentation semantics:
 
 Icon mode places the clock at the visible end of the time fill. In Left mode it therefore moves toward depletion, rather than continuing to imply elapsed consumption.
 
-Overlap compares the two displayed fractions, not the raw spent fractions. The time layer remains below when its displayed fill is longer, otherwise above. Both the fill and its endpoint obey the selected anchor. The time segment has a 1px border in the same light-gray token as the fill. A zero opacity hides the fill, border, and endpoint; otherwise border and endpoint opacity are `min(1, overlayOpacity + 0.30)` so both remain readable.
+Overlap compares the two displayed fractions, not the raw spent fractions. The time layer remains below when its displayed fill is longer, otherwise above. Both the fill and its endpoint obey the selected anchor. The time segment has a 1px border in the same light-gray token as the fill. A zero opacity hides the fill, border, and endpoint; otherwise border and endpoint opacity are `max(0, overlayOpacity - 0.15)`.
 
 ## Architecture
 

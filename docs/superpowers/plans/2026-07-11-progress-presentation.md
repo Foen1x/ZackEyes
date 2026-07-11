@@ -4,5 +4,5 @@
 2. Centralize spent-to-display conversion in a pure presentation helper.
 3. Route all quota headers, compact percentages, and shared tracks through that helper.
 4. Make Icon and Overlap time presentation follow the selected mode and anchor.
-5. Add a 1px same-color time border and endpoint with opacity 30 percentage points above the fill.
+5. Add a 1px same-color time border and endpoint with opacity 15 percentage points below the fill.
 6. Verify configuration behavior, all display combinations, build, tests, assembly, and native screenshots.

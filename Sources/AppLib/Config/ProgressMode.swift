@@ -27,11 +27,11 @@ public enum TimeOverlayOpacity {
         return (clamped * 10).rounded() / 10
     }
 
-    /// The one-pixel time boundary and border are intentionally stronger than
+    /// The one-pixel time boundary and endpoint are intentionally subtler than
     /// the translucent interior. Zero opacity hides all time-overlay marks.
-    public static func emphasisOpacity(for overlayOpacity: Double) -> Double {
+    public static func boundaryOpacity(for overlayOpacity: Double) -> Double {
         let opacity = normalized(overlayOpacity)
         guard opacity > 0 else { return 0 }
-        return min(1, opacity + 0.3)
+        return max(0, opacity - 0.15)
     }
 }
