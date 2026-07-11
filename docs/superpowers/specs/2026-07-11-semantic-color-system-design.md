@@ -9,7 +9,8 @@ Give every functional color one stable meaning, make Overlap time progress disti
 | Role | Value | Meaning |
 |---|---|---|
 | Activity | `#4FCBC3` | active work and healthy resource usage |
-| Information / Time | `#78A8D8` | neutral information and elapsed-window progress |
+| Information | `#78A8D8` | neutral informational state |
+| Time overlay | `#C9CDD3` | elapsed-window progress |
 | Attention | `#F2B544` | waiting, stale data, and elevated quota pressure |
 | Critical | `#F05A5A` | errors, destructive actions, and exhausted quota |
 | Success | `#62C47A` | explicit successful completion or healthy integration |
@@ -20,9 +21,9 @@ The existing deep ochre `#A16B24` remains a component token for the physical clo
 
 ## Overlap Rendering
 
-- Render elapsed time with Information / Time steel blue at 42% opacity.
+- Render elapsed time with light gray `#C9CDD3` at 40% opacity.
 - Keep quota usage opaque and keep the existing dynamic layer order.
-- Add a 1px steel-blue endpoint at 65% opacity inside the clipped track.
+- Add a 1px light-gray endpoint at 65% opacity inside the clipped track.
 - Use normal alpha compositing; do not use multiply or screen blending.
 - Preserve fill length and endpoint geometry so color is not the only differentiator.
 

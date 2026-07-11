@@ -20,6 +20,7 @@ struct AppColorToken: Sendable {
 enum AppColors {
     static let activity = AppColorToken(red: 79.0 / 255, green: 203.0 / 255, blue: 195.0 / 255) // #4FCBC3
     static let information = AppColorToken(red: 120.0 / 255, green: 168.0 / 255, blue: 216.0 / 255) // #78A8D8
+    static let timeOverlay = AppColorToken(red: 201.0 / 255, green: 205.0 / 255, blue: 211.0 / 255) // #C9CDD3
     static let attention = AppColorToken(red: 242.0 / 255, green: 181.0 / 255, blue: 68.0 / 255) // #F2B544
     static let critical = AppColorToken(red: 240.0 / 255, green: 90.0 / 255, blue: 90.0 / 255) // #F05A5A
     static let success = AppColorToken(red: 98.0 / 255, green: 196.0 / 255, blue: 122.0 / 255) // #62C47A

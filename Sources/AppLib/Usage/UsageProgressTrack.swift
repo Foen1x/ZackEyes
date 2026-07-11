@@ -8,7 +8,7 @@ enum TimeWindowProgress {
 
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
-    static let overlapOpacity = 0.42
+    static let overlapOpacity = 0.40
     static let endpointOpacity = 0.65
     static let endpointWidth: CGFloat = 1
 
@@ -47,7 +47,7 @@ struct UsageProgressTrack: View {
     var height: CGFloat = 6
 
     private let timeColor = AppColors.timeMarker.color
-    private let overlapColor = AppColors.information.color
+    private let overlapColor = AppColors.timeOverlay.color
 
     var body: some View {
         GeometryReader { geometry in
