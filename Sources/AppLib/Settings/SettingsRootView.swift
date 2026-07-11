@@ -137,6 +137,20 @@ struct SettingsRootView: View {
                     .frame(width: 180)
                 }
 
+                settingRow("Time progress") {
+                    Picker("", selection: binding(
+                        viewModel.timeProgressMode,
+                        viewModel.setTimeProgressMode
+                    )) {
+                        ForEach(TimeProgressMode.allCases, id: \.self) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 280)
+                }
+
                 settingRow("Today's usage") {
                     Toggle("", isOn: binding(
                         viewModel.showTodayConsumption,

@@ -29,10 +29,12 @@ struct UsageBarsView<Trailing: View>: View {
         let sevenReset = agent == .codex ? snap.codexSevenDayResetsAt : snap.sevenDayResetsAt
         VStack(spacing: 8) {
             usageBar(label: "5h", usedPct: fivePct,
-                     resetsAt: fiveReset, eta: fiveETA) {
+                     resetsAt: fiveReset, windowDuration: TimeWindowProgress.fiveHours,
+                     eta: fiveETA) {
                 trailing
             }
-            usageBar(label: "7d", usedPct: sevenPct, resetsAt: sevenReset) {
+            usageBar(label: "7d", usedPct: sevenPct, resetsAt: sevenReset,
+                     windowDuration: TimeWindowProgress.sevenDays) {
                 EmptyView()
             }
             if usageTracker.showTodayConsumption, snap.hasConsumption {
@@ -56,6 +58,7 @@ struct UsageBarsView<Trailing: View>: View {
         label: String,
         usedPct: Double?,
         resetsAt: Date?,
+        windowDuration: TimeInterval,
         eta: CapETA? = nil,
         @ViewBuilder trailing: () -> T
     ) -> some View {
@@ -96,19 +99,14 @@ struct UsageBarsView<Trailing: View>: View {
                 trailing()
             }
 
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.10))
-                        .frame(height: 6)
-                    if hasData {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(color)
-                            .frame(width: geo.size.width * CGFloat(used / 100), height: 6)
-                    }
-                }
-            }
-            .frame(height: 6)
+            UsageProgressTrack(
+                fillFraction: used / 100,
+                hasData: hasData,
+                usageColor: color,
+                timeMode: usageTracker.timeProgressMode,
+                resetsAt: resetsAt,
+                windowDuration: windowDuration
+            )
         }
     }
 

@@ -57,6 +57,7 @@ struct SimulatedNotchFullView: View {
             if bothActive {
                 splitUsageRow(
                     label: "5h",
+                    windowDuration: TimeWindowProgress.fiveHours,
                     leftPct: snap.fiveHourUsedPct,
                     leftResetsAt: snap.fiveHourResetsAt,
                     rightPct: snap.codexFiveHourUsedPct,
@@ -75,6 +76,7 @@ struct SimulatedNotchFullView: View {
                 // indicator. 7d only shows "limit" if its OWN used% hits 100.
                 splitUsageRow(
                     label: "7d",
+                    windowDuration: TimeWindowProgress.sevenDays,
                     leftPct: snap.sevenDayUsedPct,
                     leftResetsAt: snap.sevenDayResetsAt,
                     rightPct: snap.codexSevenDayUsedPct,
@@ -89,6 +91,7 @@ struct SimulatedNotchFullView: View {
                 let codexLimit = useCodex && snap.codexLimitReached
                 usageBar(
                     label: "5h",
+                    windowDuration: TimeWindowProgress.fiveHours,
                     agent: useCodex ? .codex : .claude,
                     usedPct: useCodex ? snap.codexFiveHourUsedPct : snap.fiveHourUsedPct,
                     resetsAt: useCodex ? snap.codexFiveHourResetsAt : snap.fiveHourResetsAt,
@@ -103,6 +106,7 @@ struct SimulatedNotchFullView: View {
                 // doesn't read as a misleading "100% remaining".
                 usageBar(
                     label: "7d",
+                    windowDuration: TimeWindowProgress.sevenDays,
                     agent: useCodex ? .codex : .claude,
                     usedPct: useCodex ? snap.codexSevenDayUsedPct : snap.sevenDayUsedPct,
                     resetsAt: useCodex ? snap.codexSevenDayResetsAt : snap.sevenDayResetsAt,
@@ -139,6 +143,7 @@ struct SimulatedNotchFullView: View {
     @ViewBuilder
     private func splitUsageRow<Trailing: View>(
         label: String,
+        windowDuration: TimeInterval,
         leftPct: Double?, leftResetsAt: Date?,
         rightPct: Double?, rightResetsAt: Date?,
         leftETA: CapETA? = nil, rightETA: CapETA? = nil,
@@ -153,8 +158,10 @@ struct SimulatedNotchFullView: View {
                 .frame(width: 22, alignment: .leading)
 
             HStack(spacing: 8) {
-                splitHalf(agent: .claude, usedPct: leftPct, resetsAt: leftResetsAt, eta: leftETA)
-                splitHalf(agent: .codex,  usedPct: rightPct, resetsAt: rightResetsAt, eta: rightETA,
+                splitHalf(agent: .claude, usedPct: leftPct, resetsAt: leftResetsAt,
+                          windowDuration: windowDuration, eta: leftETA)
+                splitHalf(agent: .codex, usedPct: rightPct, resetsAt: rightResetsAt,
+                          windowDuration: windowDuration, eta: rightETA,
                           limitReached: rightLimitReached, limitResetsAt: rightLimitResetsAt,
                           usedLabel: rightUsedLabel)
             }
@@ -173,6 +180,7 @@ struct SimulatedNotchFullView: View {
     /// reset countdown) sitting tightly above its progress bar.
     @ViewBuilder
     private func splitHalf(agent: AgentKind, usedPct: Double?, resetsAt: Date?,
+                           windowDuration: TimeInterval,
                            eta: CapETA? = nil,
                            limitReached: Bool = false, limitResetsAt: Date? = nil,
                            usedLabel: Bool = false) -> some View {
@@ -227,22 +235,15 @@ struct SimulatedNotchFullView: View {
                         .foregroundColor(.white.opacity(0.4))
                 }
             }
-            // Progress track. Pin the height with `.frame(height: 5)` AT
-            // the GeometryReader level so the parent HStack can't grow
-            // vertically — without it, GeometryReader is flexible and the
-            // row balloons to whatever height the layout has available.
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2.5)
-                        .fill(Color.white.opacity(0.10))
-                    if hasData {
-                        RoundedRectangle(cornerRadius: 2.5)
-                            .fill(color)
-                            .frame(width: geo.size.width * CGFloat(cell.fillFraction))
-                    }
-                }
-            }
-            .frame(height: 5)
+            UsageProgressTrack(
+                fillFraction: cell.fillFraction,
+                hasData: hasData,
+                usageColor: color,
+                timeMode: usageTracker.timeProgressMode,
+                resetsAt: resetsAt,
+                windowDuration: windowDuration,
+                height: 5
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -277,6 +278,7 @@ struct SimulatedNotchFullView: View {
     @ViewBuilder
     private func usageBar<Trailing: View>(
         label: String,
+        windowDuration: TimeInterval,
         agent: AgentKind = .claude,
         usedPct: Double?,
         resetsAt: Date?,
@@ -339,20 +341,14 @@ struct SimulatedNotchFullView: View {
                 trailing()
             }
 
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.10))
-                        .frame(height: 6)
-                    if hasData {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(color)
-                            .frame(width: geo.size.width * CGFloat(cell.fillFraction), height: 6)
-                    }
-                }
-            }
-            .frame(height: 6)
+            UsageProgressTrack(
+                fillFraction: cell.fillFraction,
+                hasData: hasData,
+                usageColor: color,
+                timeMode: usageTracker.timeProgressMode,
+                resetsAt: resetsAt,
+                windowDuration: windowDuration
+            )
         }
     }
 

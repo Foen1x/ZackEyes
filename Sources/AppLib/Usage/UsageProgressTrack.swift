@@ -1,0 +1,112 @@
+import SwiftUI
+
+enum TimeWindowProgress {
+    static let fiveHours: TimeInterval = 5 * 60 * 60
+    static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
+
+    static func elapsedFraction(
+        now: Date,
+        resetsAt: Date?,
+        duration: TimeInterval
+    ) -> Double? {
+        guard duration.isFinite, duration > 0, let resetsAt else { return nil }
+        let remaining = resetsAt.timeIntervalSince(now)
+        return max(0, min(1, 1 - remaining / duration))
+    }
+}
+
+/// Shared quota usage track with an optional elapsed-window time layer.
+struct UsageProgressTrack: View {
+    let fillFraction: Double
+    let hasData: Bool
+    let usageColor: Color
+    let timeMode: TimeProgressMode
+    let resetsAt: Date?
+    let windowDuration: TimeInterval
+    var height: CGFloat = 6
+
+    private let timeColor = Color(red: 0.63, green: 0.42, blue: 0.14)
+    private let overlapColor = Color(red: 0.94, green: 0.48, blue: 0.10)
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: height / 2)
+                    .fill(Color.white.opacity(0.10))
+
+                if hasData {
+                    RoundedRectangle(cornerRadius: height / 2)
+                        .fill(usageColor)
+                        .frame(width: geometry.size.width * CGFloat(clampedFill))
+                }
+
+                if timeMode == .overlap, resetsAt != nil {
+                    TimelineView(.periodic(from: .now, by: 30)) { context in
+                        if let elapsed = TimeWindowProgress.elapsedFraction(
+                            now: context.date,
+                            resetsAt: resetsAt,
+                            duration: windowDuration
+                        ) {
+                            timeLayer(elapsed: elapsed, width: geometry.size.width)
+                        }
+                    }
+                }
+            }
+            .frame(height: height)
+            .clipShape(RoundedRectangle(cornerRadius: height / 2))
+            .overlay(alignment: .leading) {
+                if timeMode == .icon, resetsAt != nil {
+                    TimelineView(.periodic(from: .now, by: 30)) { context in
+                        if let elapsed = TimeWindowProgress.elapsedFraction(
+                            now: context.date,
+                            resetsAt: resetsAt,
+                            duration: windowDuration
+                        ) {
+                            clockMarker(elapsed: elapsed, width: geometry.size.width)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(height: height)
+    }
+
+    @ViewBuilder
+    private func timeLayer(elapsed: Double, width: CGFloat) -> some View {
+        if timeMode == .overlap {
+            RoundedRectangle(cornerRadius: height / 2)
+                .fill(overlapColor.opacity(0.42))
+                .frame(width: width * CGFloat(elapsed), height: height)
+        }
+    }
+
+    private func clockMarker(elapsed: Double, width: CGFloat) -> some View {
+        let iconSize = max(9, height + 4)
+        let radius = iconSize / 2
+        let centerX = min(max(radius, width * CGFloat(elapsed)), max(radius, width - radius))
+
+        return ZStack {
+            Image(systemName: "clock.fill")
+                .foregroundStyle(timeColor)
+
+            // Remove only the band crossing the track, then put the clock
+            // outline back in that band. The underlying quota bar is untouched.
+            Image(systemName: "clock.fill")
+                .foregroundStyle(Color.black)
+                .mask(Rectangle().frame(height: height))
+                .blendMode(.destinationOut)
+
+            Image(systemName: "clock")
+                .foregroundStyle(timeColor)
+                .mask(Rectangle().frame(height: height))
+        }
+        .font(.system(size: iconSize, weight: .semibold))
+        .frame(width: iconSize, height: iconSize)
+        .compositingGroup()
+        .offset(x: centerX - radius)
+    }
+
+    private var clampedFill: Double {
+        max(0, min(1, fillFraction))
+    }
+}

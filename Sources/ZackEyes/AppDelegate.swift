@@ -109,6 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // ModelPrice) without coupling it to PricingStore/Bundle.
         sessionStore.codexPriceLookup = { [weak ps] model in ps?.price(for: model) }
         usageTracker.showTodayConsumption = ConfigStore().loadShowTodayConsumption()
+        usageTracker.timeProgressMode = ConfigStore().loadTimeProgressMode()
         // Real-notch path doesn't go through SimulatedNotchController, so the
         // tracker would never start its 30s refresh loop and the menu-bar
         // star would stay white forever. Start it here unconditionally —

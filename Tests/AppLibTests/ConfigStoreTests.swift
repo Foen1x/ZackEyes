@@ -251,6 +251,44 @@ final class ConfigStoreTests: XCTestCase {
         XCTAssertFalse(store.loadShowTodayConsumption())
     }
 
+    // MARK: - Time progress mode
+
+    func testTimeProgressModeDefaultsOff() {
+        let store = ConfigStore(directory: tmpDir.path)
+        XCTAssertEqual(store.loadTimeProgressMode(), .off)
+    }
+
+    func testTimeProgressModeRoundTrips() {
+        let store = ConfigStore(directory: tmpDir.path)
+        store.saveTimeProgressMode(.icon)
+        XCTAssertEqual(store.loadTimeProgressMode(), .icon)
+        store.saveTimeProgressMode(.overlap)
+        XCTAssertEqual(store.loadTimeProgressMode(), .overlap)
+        store.saveTimeProgressMode(.off)
+        XCTAssertEqual(store.loadTimeProgressMode(), .off)
+    }
+
+    func testTimeProgressModePreservesOtherKeys() {
+        let store = ConfigStore(directory: tmpDir.path)
+        store.saveCompactAgent(.codex)
+        store.saveShowTodayConsumption(false)
+        store.saveTimeProgressMode(.overlap)
+        XCTAssertEqual(store.loadCompactAgent(), .codex)
+        XCTAssertFalse(store.loadShowTodayConsumption())
+        XCTAssertEqual(store.loadTimeProgressMode(), .overlap)
+    }
+
+    func testTimeProgressModeSaveAbortsWhenFileCorrupt() throws {
+        let store = ConfigStore(directory: tmpDir.path)
+        let path = tmpDir.appendingPathComponent("config.json")
+        let garbage = "not json — preserve me"
+        try garbage.write(to: path, atomically: true, encoding: .utf8)
+
+        store.saveTimeProgressMode(.icon)
+
+        XCTAssertEqual(try String(contentsOf: path, encoding: .utf8), garbage)
+    }
+
     // MARK: - #169 Notify waiting for input
 
     func testNotifyWaitingForInputDefaultsTrue() {

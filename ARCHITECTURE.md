@@ -189,6 +189,7 @@ PricingStore.start()
 |------|------|------|
 | `HotKeyConfig` | `Sources/AppLib/Config/HotKeyConfig.swift` | 快捷键配置模型 + `HotKeyModifiers` OptionSet（Carbon/NSEvent flag 互转、Codable 字符串数组、显示符号） |
 | `ConfigStore` | `Sources/AppLib/Config/ConfigStore.swift` | 读写 `~/.zackeyes/config.json`，原子写入，解析失败回退默认值 |
+| `TimeProgressMode` | `Sources/AppLib/Config/TimeProgressMode.swift` | 配额窗口时间进度展示模式：Off / Icon / Overlap，默认 Off |
 
 **设置窗口**
 | 模块 | 文件 | 职责 |
@@ -267,6 +268,7 @@ PricingStore.start()
 | `UpdateDownloader` | `Sources/AppLib/Update/UpdateDownloader.swift` | URLSession 下载 DMG 到 `$TMPDIR`，通过 NSWorkspace 打开使 Finder 挂载；状态栏菜单 + 齿轮菜单 + 通知点击均通过此下载器 |
 | `TerminalLocator` | `Sources/AppLib/Terminal/TerminalLocator.swift` | 进程树遍历 + iTerm2/Terminal AppleScript + Ghostty/Warp/Kitty Accessibility |
 | `UsageTracker` | `Sources/AppLib/Usage/UsageTracker.swift` | 双 agent 配额。Claude 数据来自 statusLine hook 的 `rate_limits.{five_hour,seven_day}`；Codex 数据来自周期扫描 `~/.codex/sessions/` rollout 的 `event_msg.token_count.rate_limits.{primary,secondary}`。**采集活跃度与额度有效期解耦**：15 min rollout mtime 窗口只用于发现新读数；Codex 空闲、没有新 rollout 时保留最后可信读数，并按 5h/7d 各自 `resets_at` 独立失效。`codexLastUpdated` 记录实际供应读数的 rollout mtime，重复扫描不会伪装成刚更新，UI 超过 15 min 后通过 freshness 警告标记陈旧。**跨并发 rollout 合并**：`firstActiveCodexReadings` 把 15 min 内所有活跃 rollout 的 scope 按 `limit_name` 合并，同名 scope 取 per-axis 非过期最大值——防止某个高频写 0% 的 per-model session（如 gpt-5.5 的 `GPT-5.3-Codex-Spark`）盖住另一个安静 session 写的真实账号用量。**账号级安全网**：5h/7d 百分比只在存在账号级 scope（空 `limit_name`，或缓存种子）时才可信；若当前只有 per-model scope（gpt-5.5 的账号 scope 在 rollout 里恒为 null），百分比留 nil（显示「—」/隐藏），**绝不把 per-model 0% 渲染成「100% 剩余」**。账号真实 5h/7d 仅存在于 codex 收到的响应头（`x-codex-*-used-percent`，落在 `~/.codex/logs_2.sqlite` DEBUG 日志或 app-server `account/rateLimits/read`），codex 不写进 rollout——刻意不接这两个重源（log DB 抓取 / 进程 spawn）以保持 widget 轻量，缺账号数据时诚实显示未知。`codexLimitReached`（out-of-credits `balance:"0"` / `rate_limit_reached_type` / 窗口 100%）独立于百分比，单独驱动「limit reached」徽标。Snapshot 含 claude + codex 平行字段，UI 按需呈现单条或左右切。 |
+| `UsageProgressTrack` | `Sources/AppLib/Usage/UsageProgressTrack.swift` | 共享 5h/7d 配额轨道：用量填充 + 已度过窗口时间；Icon/Overlap 每 30s 更新，不用于 session context bar |
 | `PricingStore` / `PricingTable` | `Sources/AppLib/Usage/PricingStore.swift`、`PricingTable.swift` | 模型→单价查询（`price(for:)`）。`PricingTable` 纯解析+查找（exact→去日期后缀→alias→nil，仅接受原始 model id）；`PricingStore` 按 `version` 在 bundled 快照 / 磁盘缓存 / 24h 远端拉取间择新，失败静默。无 UI。 |
 | `TodayConsumptionRow` | `Sources/AppLib/Usage/TodayConsumptionRow.swift` | #84 消费轴（与 5h/7d 配额轴分开）：full-view header 的 "Today" 行——今日 token + $ + 近 7 日 token sparkline + 每 agent 副行。纯静态格式化助手（humanize / cost / sparkline，`nonisolated`）+ 只读视图。数据来自 `UsageTracker.Snapshot.dailyUsage`（7 个本地日桶；Claude 侧 `computeSnapshot` 递归全 projects 树扫 transcript——含 `<session>/subagents/` 与 Workflow 工具的 `<session>/wf_*/` agent 文件，#116——并按 `(mtime,size)` per-file 缓存解析；Codex 侧缓存式 `scanCodexDailyTokens`；cost 在主 actor 用 `PricingStore` 折算）。嵌入 `UsageBarsView`（真刘海）与 `SimulatedNotchFullView.usageHeader`（模拟），`hasConsumption` 为空时隐藏；由齿轮菜单「Show today's consumption」开关控制（默认开，flag 在 `UsageTracker.showTodayConsumption`，持久化 `ConfigStore`，两个面板响应式）。**收起的 compact pill 始终只显示 5h/7d 配额，不显示消费**（产品决策）。 |
 

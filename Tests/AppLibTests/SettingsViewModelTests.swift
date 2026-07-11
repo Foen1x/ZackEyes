@@ -24,12 +24,15 @@ struct SettingsViewModelTests {
         model.setVisibility(.whenActive)
         model.setCompactAgent(.codex)
         model.setShowTodayConsumption(false)
+        model.setTimeProgressMode(.overlap)
         model.setNotifyWaitingForInput(false)
 
         #expect(store.loadNotchVisibility() == .whenActive)
         #expect(store.loadCompactAgent() == .codex)
         #expect(store.loadShowTodayConsumption() == false)
         #expect(usage.showTodayConsumption == false)
+        #expect(store.loadTimeProgressMode() == .overlap)
+        #expect(usage.timeProgressMode == .overlap)
         #expect(store.loadNotifyWaitingForInput() == false)
     }
 

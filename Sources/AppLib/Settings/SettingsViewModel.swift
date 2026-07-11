@@ -8,6 +8,7 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var visibility: NotchVisibility
     @Published private(set) var compactAgent: AgentKind
     @Published private(set) var showTodayConsumption: Bool
+    @Published private(set) var timeProgressMode: TimeProgressMode
     @Published private(set) var hotkey: HotKeyConfig
     @Published private(set) var theme: BuddyTheme
     @Published private(set) var notificationSound: String
@@ -37,6 +38,7 @@ final class SettingsViewModel: ObservableObject {
         visibility = configStore.loadNotchVisibility()
         compactAgent = configStore.loadCompactAgent()
         showTodayConsumption = configStore.loadShowTodayConsumption()
+        timeProgressMode = configStore.loadTimeProgressMode()
         hotkey = configStore.load()
         theme = loadedTheme
         notificationSound = configStore.loadNotificationSound()
@@ -74,6 +76,13 @@ final class SettingsViewModel: ObservableObject {
         configStore.saveShowTodayConsumption(enabled)
         showTodayConsumption = enabled
         usageTracker.showTodayConsumption = enabled
+    }
+
+    func setTimeProgressMode(_ mode: TimeProgressMode) {
+        guard mode != timeProgressMode else { return }
+        configStore.saveTimeProgressMode(mode)
+        timeProgressMode = mode
+        usageTracker.timeProgressMode = mode
     }
 
     func setTheme(_ value: BuddyTheme) {
