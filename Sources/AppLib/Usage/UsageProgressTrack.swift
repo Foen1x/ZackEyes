@@ -8,7 +8,7 @@ enum TimeWindowProgress {
 
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
-    static let overlapOpacity = 0.40
+    static let overlapOpacity = 0.60
     static let endpointOpacity = 0.65
     static let endpointWidth: CGFloat = 1
 
