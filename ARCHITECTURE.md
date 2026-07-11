@@ -196,7 +196,7 @@ PricingStore.start()
 |------|------|------|
 | `SettingsWindowController` | `Sources/AppLib/Settings/SettingsWindowController.swift` | 单例、非模态的标准 macOS 设置窗口；重复打开聚焦既有窗口，不阻塞权限 socket |
 | `SettingsViewModel` | `Sources/AppLib/Settings/SettingsViewModel.swift` | 统一加载/保存 `ConfigStore` 偏好并发送既有运行时通知；聚合 Hook Health |
-| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI |
+| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI；General 使用 Quota source / Window elapsed / Today's consumption 明确三类显示偏好 |
 
 **Hook 安装**
 | 模块 | 文件 | 职责 |
@@ -230,10 +230,10 @@ PricingStore.start()
 | `NotchPanel` | `Sources/AppLib/Notch/NotchPanel.swift` | NSPanel 子类，刘海区域覆盖层 |
 | `NotchWindowController` | `Sources/AppLib/Notch/NotchWindowController.swift` | 位置锚定、状态切换、鼠标追踪（固定窗口，不帧动画） |
 | `NotchViewModel` | `Sources/AppLib/Notch/NotchViewModel.swift` | 桥接 `SessionStore` → SwiftUI；转发嵌套 `objectWillChange` |
-| `NotchCompactView` | `Sources/AppLib/Notch/NotchCompactView.swift` | 折叠 / 紧凑状态视图 |
-| `NotchExpandedView` | `Sources/AppLib/Notch/NotchExpandedView.swift` | 完整 popover：会话卡片、tasks、permission 审批、错误横幅、AskUserQuestion 选项卡。卡片右上角带 `AgentBadge`。 |
+| `NotchCompactView` | `Sources/AppLib/Notch/NotchCompactView.swift` | 折叠 / 紧凑状态视图；固定宽状态位按错误（红）→待用户（黄）→工作/空闲排序，多项注意事件显示数量 |
+| `NotchExpandedView` | `Sources/AppLib/Notch/NotchExpandedView.swift` | 完整 popover：按 Needs You / Running / Recent 分组（Recent 默认折叠）；会话卡片以项目名为主身份、Buddy 为辅助，保留 tasks、permission、错误和 AskUserQuestion 内容 |
 | `AgentBadge` | `Sources/AppLib/Notch/AgentBadge.swift` | 14×14 SwiftUI 角标：`[CLAUDE]` 紫色 / `[CODEX]` 绿色。也提供 `accentColor(for:)` 给其它视图染色（split usage bar / 通知标题映射）。 |
-| `BuddyAvatar` | `Sources/AppLib/Notch/BuddyAvatar.swift` | 动画化 buddy（headbang / 睡觉 / 惊慌） |
+| `BuddyAvatar` | `Sources/AppLib/Notch/BuddyAvatar.swift` | 动画化 buddy（headbang / 睡觉 / 惊慌）；自动尊重 macOS Reduce Motion，关闭无限动画但保留静态状态表达 |
 | `Buddy` | `Sources/AppLib/Notch/Buddy.swift` | 摇滚传奇命名池（66 个）+ 性格标语池 |
 | `PixelAvatar` | `Sources/AppLib/Notch/PixelAvatar.swift` | 9 种 8×8 像素图案 + 8 色摇滚配色 |
 | `HotkeyRecorderView` | `Sources/AppLib/Notch/HotkeyRecorderView.swift` | SwiftUI 快捷键录入 overlay，NSEvent local monitor 捕获按键，验证 modifier |
