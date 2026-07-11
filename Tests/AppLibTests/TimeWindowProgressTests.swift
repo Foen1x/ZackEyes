@@ -66,18 +66,4 @@ struct TimeWindowProgressTests {
         )
     }
 
-    @Test
-    func endpointStaysInsideTrackAtEveryBoundary() {
-        #expect(TimeWindowProgress.endpointOffset(fraction: 0, trackWidth: 100) == 0)
-        #expect(TimeWindowProgress.endpointOffset(fraction: 0.5, trackWidth: 100) == 49.5)
-        #expect(TimeWindowProgress.endpointOffset(fraction: 1, trackWidth: 100) == 99)
-        #expect(TimeWindowProgress.endpointOffset(fraction: 2, trackWidth: 100) == 99)
-    }
-
-    @Test
-    func trailingFillPlacesEndpointAtItsVisibleLeadingEdge() {
-        #expect(TimeWindowProgress.endpointOffset(
-            fraction: 0.2, trackWidth: 100, anchor: .trailing
-        ) == 79.5)
-    }
 }

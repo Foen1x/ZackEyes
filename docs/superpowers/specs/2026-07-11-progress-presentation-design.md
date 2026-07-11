@@ -24,7 +24,7 @@ Add the following controls to Settings > General > Dynamic Island:
 Progress mode       [ Spent | Left ]
 Fill direction      [ -> | <- ]       (visible only for Left)
 Window elapsed      [ Off | Icon | Overlap ]
-Overlay opacity     [----|------] 40% (visible only for Overlap)
+Overlay transparency [----|------] 60% (visible only for Overlap)
 ```
 
 The direction segments use SF Symbol arrows with accessibility labels and hover help. The opacity control is a native slider with `0...100`, `10`-point steps, and a fixed-width percentage value.
@@ -53,7 +53,7 @@ Time follows the same presentation semantics:
 
 Icon mode places the clock at the visible end of the time fill. In Left mode it therefore moves toward depletion, rather than continuing to imply elapsed consumption.
 
-Overlap compares the two displayed fractions, not the raw spent fractions. The time layer remains below when its displayed fill is longer, otherwise above. Both the fill and its endpoint obey the selected anchor. The time segment has a 1px border in the same light-gray token as the fill. A zero opacity hides the fill, border, and endpoint; otherwise border and endpoint opacity are `max(0, overlayOpacity - 0.15)`.
+Overlap compares the two displayed fractions, not the raw spent fractions. The time layer remains below when its displayed fill is longer, otherwise above. The time segment has a 1px border in the same light-gray token as the fill. Settings presents inverse transparency: 60% transparency is stored as 40% opacity. A zero opacity hides the fill and border; otherwise border opacity is `max(0, overlayOpacity - 0.15)`.
 
 ## Architecture
 
@@ -62,7 +62,7 @@ Introduce pure presentation helpers that convert the stored used percentage and 
 - displayed numeric value and label role;
 - fill fraction;
 - leading or trailing anchor;
-- visible time endpoint;
+- time border opacity;
 - overlap layer order.
 
 `UsageProgressTrack` consumes this presentation state rather than hard-coding a leading spent fill. `UsageTracker` remains the published owner of the three display preferences so physical notch and simulated notch update immediately. `ConfigStore` owns defensive persistence, and `SettingsViewModel` bridges the controls to the tracker.
@@ -71,7 +71,7 @@ Introduce pure presentation helpers that convert the stored used percentage and 
 
 - Config default, round-trip, malformed-value, clamping, and preservation tests.
 - Pure presentation tests for Spent, Left LTR, and Left RTL, including 0%, 50%, and 100% boundaries.
-- Time endpoint and overlap-order tests for all presentation combinations.
+- Time border-opacity and overlap-order tests for all presentation combinations.
 - Text tests for expanded and split rows, including limit-reached priority.
 - Native screenshots for Spent, Left LTR, Left RTL, and Overlap opacity 0%, 40%, and 100%.
 

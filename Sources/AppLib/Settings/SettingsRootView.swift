@@ -184,18 +184,15 @@ struct SettingsRootView: View {
                 }
 
                 if viewModel.timeProgressMode == .overlap {
-                    settingRow("Overlay opacity") {
+                    settingRow("Overlay transparency") {
                         HStack(spacing: 8) {
                             Slider(
-                                value: binding(
-                                    viewModel.timeOverlayOpacity,
-                                    viewModel.setTimeOverlayOpacity
-                                ),
+                                value: overlayTransparency,
                                 in: 0...1,
                                 step: 0.1
                             )
                             .frame(width: 220)
-                            Text("\(Int((viewModel.timeOverlayOpacity * 100).rounded()))%")
+                            Text("\(Int((overlayTransparency.wrappedValue * 100).rounded()))%")
                                 .font(.system(size: 12, design: .monospaced))
                                 .frame(width: 36, alignment: .trailing)
                         }
@@ -497,6 +494,15 @@ struct SettingsRootView: View {
         } else if let releaseURL = updateChecker.releaseURL {
             NSWorkspace.shared.open(releaseURL)
         }
+    }
+
+    /// The persisted value is opacity; the control intentionally presents its
+    /// inverse so moving right makes the overlay more transparent.
+    private var overlayTransparency: Binding<Double> {
+        Binding(
+            get: { 1 - viewModel.timeOverlayOpacity },
+            set: { viewModel.setTimeOverlayOpacity(1 - $0) }
+        )
     }
 
     private func binding<Value: Sendable>(

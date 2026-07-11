@@ -8,7 +8,6 @@ enum TimeWindowProgress {
 
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
-    static let endpointWidth: CGFloat = 1
 
     static func elapsedFraction(
         now: Date,
@@ -22,16 +21,6 @@ enum TimeWindowProgress {
 
     static func layerOrder(elapsedFraction: Double, usageFraction: Double) -> LayerOrder {
         elapsedFraction > usageFraction ? .belowUsage : .aboveUsage
-    }
-
-    static func endpointOffset(
-        fraction: Double,
-        trackWidth: CGFloat,
-        anchor: ProgressFillAnchor = .leading,
-        endpointWidth: CGFloat = TimeWindowProgress.endpointWidth
-    ) -> CGFloat {
-        let position = endpointPosition(fraction: fraction, trackWidth: trackWidth, anchor: anchor)
-        return min(max(0, position - endpointWidth / 2), max(0, trackWidth - endpointWidth))
     }
 
     static func endpointPosition(
@@ -148,14 +137,6 @@ struct UsageProgressTrack: View {
                     }
                     .frame(width: width, height: height, alignment: alignment(for: presentation.anchor))
 
-                Rectangle()
-                    .fill(overlapColor.opacity(boundaryOpacity))
-                    .frame(width: TimeWindowProgress.endpointWidth, height: height)
-                    .offset(x: TimeWindowProgress.endpointOffset(
-                        fraction: presentation.fraction,
-                        trackWidth: width,
-                        anchor: presentation.anchor
-                    ))
             }
         }
     }
