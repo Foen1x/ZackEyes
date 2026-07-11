@@ -13,8 +13,6 @@ struct SimulatedNotchView: View {
     let isExpanded: Bool
     var onTap: (() -> Void)? = nil
 
-    @State private var workingPulse: Double = 1.0
-
     var body: some View {
         HStack(spacing: 10) {
             statusIcon
@@ -45,29 +43,13 @@ struct SimulatedNotchView: View {
     // MARK: - Status icon (animated sparkles / dot)
 
     private var statusIcon: some View {
-        Group {
-            switch viewModel.aggregateState {
-            case .waiting:
-                Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(red: 0.96, green: 0.65, blue: 0.14))
-            case .working:
-                Image(systemName: "sparkles")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(red: 0.31, green: 0.80, blue: 0.77))
-                    .scaleEffect(workingPulse)
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
-                            workingPulse = 1.2
-                        }
-                    }
-            case .idle, .stopped:
-                Image(systemName: "sparkles")
-                    .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.35))
-            }
-        }
-        .frame(width: 14, height: 14)
+        CompactStatusIcon(
+            attention: CompactAttention.make(
+                from: Array(viewModel.sessionStore.sessions.values)
+            ),
+            aggregateState: viewModel.aggregateState,
+            workingColor: Color(red: 0.31, green: 0.80, blue: 0.77)
+        )
     }
 
     // MARK: - Compact content (shown when not hovered)

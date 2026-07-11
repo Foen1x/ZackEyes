@@ -134,21 +134,13 @@ struct NotchCompactView: View {
 
     @ViewBuilder
     private var statusIcon: some View {
-        switch viewModel.aggregateState {
-        case .waiting:
-            Image(systemName: "exclamationmark.circle.fill")
-                .font(.system(size: 11))
-                .foregroundColor(Color(red: 0.96, green: 0.65, blue: 0.14))
-        case .working:
-            Circle()
-                .fill(viewModel.statusColor)
-                .frame(width: 8, height: 8)
-                .shadow(color: viewModel.statusColor, radius: 3)
-        case .idle, .stopped:
-            Image(systemName: "sparkles")
-                .font(.system(size: 11))
-                .foregroundColor(.white.opacity(0.45))
-        }
+        CompactStatusIcon(
+            attention: CompactAttention.make(
+                from: Array(viewModel.sessionStore.sessions.values)
+            ),
+            aggregateState: viewModel.aggregateState,
+            workingColor: viewModel.statusColor
+        )
     }
 
     // MARK: - Left content (visible, left of notch)
