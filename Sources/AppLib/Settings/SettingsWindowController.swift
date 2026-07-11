@@ -50,6 +50,9 @@ public final class SettingsWindowController: NSObject, NSWindowDelegate {
             defer: true
         )
         window.title = "ZackEyes Settings"
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.backgroundColor = NSColor(white: 0.12, alpha: 1)
+        window.titlebarAppearsTransparent = true
         window.contentView = NSHostingView(rootView: rootView)
         window.minSize = NSSize(width: 660, height: 460)
         window.isReleasedWhenClosed = false

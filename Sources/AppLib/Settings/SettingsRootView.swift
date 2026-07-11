@@ -34,16 +34,25 @@ struct SettingsRootView: View {
     @State private var selection: SettingsSection = .general
 
     private let accent = AppColors.activity.color
+    private let cardBackground = Color(white: 0.12)
+    private let surfaceBackground = Color.white.opacity(0.035)
+    private let transparentBorder = Color.white.opacity(0.12)
+    private let secondaryForeground = Color.white.opacity(0.60)
 
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-            Divider()
+            Rectangle()
+                .fill(transparentBorder)
+                .frame(width: 1)
             detail
         }
         .frame(minWidth: 660, minHeight: 460)
         .tint(accent)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .foregroundStyle(Color.white)
+        .background(cardBackground)
+        .overlay(Rectangle().stroke(transparentBorder, lineWidth: 1))
+        .preferredColorScheme(.dark)
     }
 
     private var sidebar: some View {
@@ -54,9 +63,10 @@ struct SettingsRootView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("ZackEyes")
                         .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
                     Text("Settings")
                         .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryForeground)
                 }
             }
             .padding(.horizontal, 12)
@@ -76,13 +86,19 @@ struct SettingsRootView: View {
                         Spacer()
                     }
                     .font(.system(size: 13, weight: selection == section ? .semibold : .regular))
-                    .foregroundStyle(selection == section ? Color.primary : Color.secondary)
+                    .foregroundStyle(selection == section ? Color.white : secondaryForeground)
                     .padding(.horizontal, 10)
                     .frame(height: 32)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(selection == section ? accent.opacity(0.16) : .clear)
+                            .fill(selection == section ? accent.opacity(0.15) : .clear)
                     )
+                    .overlay {
+                        if selection == section {
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(accent.opacity(0.35), lineWidth: 1)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
             }
@@ -90,7 +106,7 @@ struct SettingsRootView: View {
         }
         .padding(12)
         .frame(width: 176)
-        .background(Color(nsColor: .controlBackgroundColor).opacity(0.55))
+        .background(surfaceBackground)
     }
 
     private var detail: some View {
@@ -98,6 +114,7 @@ struct SettingsRootView: View {
             VStack(alignment: .leading, spacing: 24) {
                 Text(selection.rawValue)
                     .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
 
                 switch selection {
                 case .general: generalSettings
@@ -216,8 +233,11 @@ struct SettingsRootView: View {
                             .font(.system(size: 13, weight: .medium, design: .rounded))
                             .padding(.horizontal, 10)
                             .frame(height: 26)
-                            .background(Color(nsColor: .controlBackgroundColor))
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
+                            .background(surfaceBackground, in: RoundedRectangle(cornerRadius: 5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(transparentBorder, lineWidth: 1)
+                            )
                         Button("Change...", action: changeHotkey)
                     }
                 }
@@ -389,10 +409,15 @@ struct SettingsRootView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryForeground)
             VStack(alignment: .leading, spacing: 12, content: content)
-            Divider()
         }
+        .padding(12)
+        .background(surfaceBackground, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(transparentBorder, lineWidth: 1)
+        )
     }
 
     private func settingRow<Content: View>(
@@ -401,6 +426,7 @@ struct SettingsRootView: View {
     ) -> some View {
         HStack(alignment: .center) {
             Text(title)
+                .foregroundStyle(Color.white.opacity(0.88))
                 .frame(width: 160, alignment: .leading)
             content()
             Spacer(minLength: 0)

@@ -197,7 +197,7 @@ PricingStore.start()
 |------|------|------|
 | `SettingsWindowController` | `Sources/AppLib/Settings/SettingsWindowController.swift` | 单例、非模态的标准 macOS 设置窗口；重复打开聚焦既有窗口，不阻塞权限 socket |
 | `SettingsViewModel` | `Sources/AppLib/Settings/SettingsViewModel.swift` | 统一加载/保存 `ConfigStore` 偏好并发送既有运行时通知；聚合 Hook Health |
-| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI；General 支持 Preferred quota source、Progress mode、Left 填充方向、Window elapsed、Overlap 透明度和 Today's consumption；首选 Agent 无配额数据时自动回退另一方 |
+| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI；沿用 About 卡片的深色表面、activity 强调色和半透明描边；General 支持 Preferred quota source、Progress mode、Left 填充方向、Window elapsed、Overlap 透明度和 Today's consumption；首选 Agent 无配额数据时自动回退另一方 |
 
 **Hook 安装**
 | 模块 | 文件 | 职责 |
