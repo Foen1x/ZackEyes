@@ -67,8 +67,8 @@ struct TimeWindowProgressTests {
     }
 
     @Test
-    func overlapIsTenPercentagePointsMoreTransparent() {
-        #expect(TimeWindowProgress.overlapOpacity == 0.32)
+    func overlapUsesStrongerContrastOpacity() {
+        #expect(TimeWindowProgress.overlapOpacity == 0.42)
     }
 
     @Test

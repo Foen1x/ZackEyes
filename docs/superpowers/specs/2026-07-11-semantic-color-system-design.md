@@ -20,7 +20,7 @@ The existing deep ochre `#A16B24` remains a component token for the physical clo
 
 ## Overlap Rendering
 
-- Render elapsed time with Information / Time steel blue at 32% opacity.
+- Render elapsed time with Information / Time steel blue at 42% opacity.
 - Keep quota usage opaque and keep the existing dynamic layer order.
 - Add a 1px steel-blue endpoint at 65% opacity inside the clipped track.
 - Use normal alpha compositing; do not use multiply or screen blending.
