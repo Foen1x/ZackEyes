@@ -190,6 +190,13 @@ PricingStore.start()
 | `HotKeyConfig` | `Sources/AppLib/Config/HotKeyConfig.swift` | 快捷键配置模型 + `HotKeyModifiers` OptionSet（Carbon/NSEvent flag 互转、Codable 字符串数组、显示符号） |
 | `ConfigStore` | `Sources/AppLib/Config/ConfigStore.swift` | 读写 `~/.zackeyes/config.json`，原子写入，解析失败回退默认值 |
 
+**设置窗口**
+| 模块 | 文件 | 职责 |
+|------|------|------|
+| `SettingsWindowController` | `Sources/AppLib/Settings/SettingsWindowController.swift` | 单例、非模态的标准 macOS 设置窗口；重复打开聚焦既有窗口，不阻塞权限 socket |
+| `SettingsViewModel` | `Sources/AppLib/Settings/SettingsViewModel.swift` | 统一加载/保存 `ConfigStore` 偏好并发送既有运行时通知；聚合 Hook Health |
+| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI |
+
 **Hook 安装**
 | 模块 | 文件 | 职责 |
 |------|------|------|
@@ -238,8 +245,6 @@ PricingStore.start()
 | `SimulatedNotchFullView` | `Sources/AppLib/SimulatedNotch/SimulatedNotchFullView.swift` | Full 模式：5h/7d 进度条 header + 滚动 session 列表。当两 agent 都有数据时，header 自动左右切割（左 Claude / 右 Codex），用固定宽 gear 列保证 5h 与 7d 两行轨道对齐 |
 | `SimulatedNotchController` | `Sources/AppLib/SimulatedNotch/SimulatedNotchController.swift` | 三态形变控制器，hover intent 进入 full，外部点击退出，内容自适应高度。启动时从 `ConfigStore.loadCompactAgent()` 注水 `modeStore.compactAgent` 避免首帧闪烁；`#48` 起 `applyVisibility` 支持 `.whenActive` 自动显隐 |
 | `SimulatedNotchRoot` | `Sources/AppLib/SimulatedNotch/SimulatedNotchRoot.swift` | SwiftUI 根视图，compact/full 切换 + overlay 层叠。`NotchModeStore` 含 `@Published compactAgent: AgentKind` |
-| `GearMenuTarget` | `Sources/AppLib/SimulatedNotch/GearMenuTarget.swift` | NSMenu 动作目标（About / Change Hotkey / Theme / Compact display / Update） |
-| `HostViewProbe` | `Sources/AppLib/SimulatedNotch/HostViewProbe.swift` | SwiftUI → NSView 桥接，用于齿轮菜单锚点定位 |
 
 **菜单栏 fallback**
 | 模块 | 文件 | 职责 |
@@ -251,7 +256,7 @@ PricingStore.start()
 | `DiagnosticsReport` | `Sources/AppLib/Diagnostics/DiagnosticsReport.swift` | #47 隐私安全诊断报告（固定 schema）：版本/OS/arch + HookHealth 布尔值 + 用量新鲜度，复用 `HookHealth`。唯一自由文本字段（statusLine 第三方命令）经 `Redactor` 脱敏；绝不含 prompt/assistant/工具参数/完整配置内容。`generate` 纯函数（依赖注入），`current()` 为薄 `@MainActor` 聚合层。 |
 | `DiagnosticsWindow` | `Sources/AppLib/MenuBar/DiagnosticsWindow.swift` | #47 导出审阅窗口（`KeyablePanel` 仿 `HookStatusWindow`）：滚动展示脱敏报告 + Copy/Save…/Close，用户分享前可先审阅内容。两菜单"Export Diagnostics…"共用同一实例。 |
 
-> **两套齿轮菜单（易分叉，见 #164）**：物理刘海（`NotchWindowController`）的齿轮复用 `StatusBarMenu.buildMenu()`（`AppDelegate` 把 `wc.showMenu` 接到它），模拟刘海用自己的 `SimulatedNotchFullView.popGearMenu()`。两者由不同代码构建，需手动保持同步。`#160` 起 `StatusBarMenu` 补上 **Compact display**；但 **Show today's consumption** 开关目前仍只在模拟刘海菜单里（物理刘海缺，#164 跟踪）。**Move Notch** 物理刘海故意不提供（硬件位置固定）。
+> **统一设置入口**：物理刘海和模拟刘海的齿轮都直接发布 `.settingsWindowRequested`，由 `AppDelegate` 持有的单例 `SettingsWindowController` 打开同一窗口。`StatusBarMenu` 只保留 Settings / About / Update / Quit 等应用级命令，不再复制偏好设置。Move Notch 仅在没有物理刘海时显示。
 
 **全局功能**
 | 模块 | 文件 | 职责 |
@@ -351,6 +356,7 @@ ccisland/
 │   │   ├── Notch/              # NotchPanel, Buddy, PixelAvatar, HotkeyRecorderView
 │   │   ├── SimulatedNotch/     # 无刘海机型的灵动岛
 │   │   ├── MenuBar/            # MenuBarFallback
+│   │   ├── Settings/           # 统一非模态设置窗口
 │   │   ├── HotKey/             # HotKeyManager（可配置快捷键）
 │   │   ├── Notifications/      # NotificationManager
 │   │   ├── Terminal/           # TerminalLocator (tab 跳转)
