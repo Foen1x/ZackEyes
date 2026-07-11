@@ -171,7 +171,7 @@ struct NotchCompactView: View {
             Text(label)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
         }
-        .foregroundColor(Color(red: 0.95, green: 0.30, blue: 0.30))
+        .foregroundColor(AppColors.critical.color)
     }
 
     // MARK: - Right content (visible, right of notch)

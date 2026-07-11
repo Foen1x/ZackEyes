@@ -264,7 +264,7 @@ struct SimulatedNotchFullView: View {
                     // doesn't lose the affordance to retry.
                     if updateChecker.availableVersion != nil {
                         Circle()
-                            .fill(.red)
+                            .fill(AppColors.critical.color)
                             .frame(width: 6, height: 6)
                             .offset(x: 2, y: -2)
                     }

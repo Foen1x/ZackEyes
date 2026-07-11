@@ -31,7 +31,7 @@ struct SimulatedNotchView: View {
             // currently draggable (entered via gear menu → "Move Notch").
             if modeStore.isMovingNotch {
                 NotchShape(cornerRadius: 14)
-                    .stroke(Color(red: 0.31, green: 0.80, blue: 0.77), lineWidth: 2)
+                    .stroke(AppColors.activity.color, lineWidth: 2)
             }
         }
         .contentShape(NotchShape(cornerRadius: 14))
@@ -48,7 +48,7 @@ struct SimulatedNotchView: View {
                 from: Array(viewModel.sessionStore.sessions.values)
             ),
             aggregateState: viewModel.aggregateState,
-            workingColor: Color(red: 0.31, green: 0.80, blue: 0.77)
+            workingColor: AppColors.activity.color
         )
     }
 
@@ -79,7 +79,7 @@ struct SimulatedNotchView: View {
             Image(systemName: "bolt.fill").font(.system(size: 10, weight: .bold))
             Text(label).font(.system(size: 13, weight: .semibold, design: .monospaced))
         }
-        .foregroundColor(Color(red: 0.95, green: 0.30, blue: 0.30))
+        .foregroundColor(AppColors.critical.color)
     }
 
     @ViewBuilder
@@ -111,11 +111,7 @@ struct SimulatedNotchView: View {
         } else {
             return .white.opacity(0.4)  // gray when no data
         }
-        switch usedRatio {
-        case ..<0.5: return Color(red: 0.31, green: 0.80, blue: 0.77)  // teal
-        case ..<0.85: return Color(red: 0.96, green: 0.65, blue: 0.14) // orange
-        default: return Color(red: 0.95, green: 0.30, blue: 0.30)      // red
-        }
+        return .usageLevelColor(usedPct: usedRatio * 100)
     }
 
 

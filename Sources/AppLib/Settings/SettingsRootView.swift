@@ -33,7 +33,7 @@ struct SettingsRootView: View {
 
     @State private var selection: SettingsSection = .general
 
-    private let accent = Color(red: 0.18, green: 0.66, blue: 0.62)
+    private let accent = AppColors.activity.color
 
     var body: some View {
         HStack(spacing: 0) {
@@ -287,7 +287,7 @@ struct SettingsRootView: View {
             settingsGroup("Remove") {
                 HStack {
                     Button("Uninstall Integrations...", action: uninstallIntegrations)
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(AppColors.critical.color)
                     Spacer()
                 }
             }
@@ -363,7 +363,7 @@ struct SettingsRootView: View {
             Image(systemName: status == "Ready" || status == "Current app" || status == "Reachable" || status == "Installed"
                 ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                 .foregroundStyle(status == "Ready" || status == "Current app" || status == "Reachable" || status == "Installed"
-                    ? Color.green : Color.orange)
+                    ? AppColors.success.color : AppColors.attention.color)
             Text(title)
             Spacer()
             Text(status).foregroundStyle(.secondary)

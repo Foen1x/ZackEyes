@@ -62,14 +62,14 @@ struct CompactStatusIcon: View {
             case .waiting:
                 Image(systemName: "exclamationmark.circle.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(red: 0.96, green: 0.65, blue: 0.14))
+                    .foregroundColor(AppColors.attention.color)
             }
         }
     }
 
     private var statusColor: Color {
         attention.kind == .error
-            ? Color(red: 0.95, green: 0.30, blue: 0.30)
-            : Color(red: 0.96, green: 0.65, blue: 0.14)
+            ? AppColors.critical.color
+            : AppColors.attention.color
     }
 }
