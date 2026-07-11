@@ -4,6 +4,7 @@ struct NotchExpandedView: View {
     @ObservedObject var viewModel: NotchViewModel
     @State private var pulseOpacity: Double = 1.0
     @State private var tick: Date = Date()
+    @State private var recentExpanded = false
     /// #43 — session ids whose resting-card recap is expanded to full text.
     @State private var expandedRecaps: Set<String> = []
 
@@ -15,14 +16,23 @@ struct NotchExpandedView: View {
 
     var body: some View {
         let theme = currentTheme
+        let sections = SessionListPresentation.sections(
+            from: viewModel.sessionStore.orderedSessions
+        )
         VStack(alignment: .leading, spacing: 12) {
             if viewModel.sessionStore.sessions.isEmpty {
                 emptyState
             } else {
-                // List all sessions (most recent first)
-                VStack(spacing: 10) {
-                    ForEach(viewModel.sessionStore.orderedSessions, id: \.id) { session in
-                        sessionCard(session, theme: theme)
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(sections) { section in
+                        VStack(alignment: .leading, spacing: 8) {
+                            sectionHeader(section)
+                            if section.group != .recent || recentExpanded {
+                                ForEach(section.sessions, id: \.id) { session in
+                                    sessionCard(session, theme: theme)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -37,6 +47,45 @@ struct NotchExpandedView: View {
         .onReceive(durationTimer) { now in
             tick = now
         }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ section: SessionListSection) -> some View {
+        if section.group == .recent {
+            Button {
+                withAnimation(.easeOut(duration: 0.18)) {
+                    recentExpanded.toggle()
+                }
+            } label: {
+                sectionHeaderContent(section, collapsible: true)
+            }
+            .buttonStyle(.plain)
+        } else {
+            sectionHeaderContent(section, collapsible: false)
+        }
+    }
+
+    private func sectionHeaderContent(
+        _ section: SessionListSection,
+        collapsible: Bool
+    ) -> some View {
+        HStack(spacing: 6) {
+            Text(section.group.title)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(section.group == .needsYou
+                    ? Color(red: 0.96, green: 0.65, blue: 0.14)
+                    : .white.opacity(0.55))
+            Text("\(section.sessions.count)")
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .foregroundColor(.white.opacity(0.35))
+            Spacer(minLength: 0)
+            if collapsible {
+                Image(systemName: recentExpanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.4))
+            }
+        }
+        .contentShape(Rectangle())
     }
 
     // MARK: - Empty state
@@ -97,11 +146,13 @@ struct NotchExpandedView: View {
             )
 
             VStack(alignment: .leading, spacing: 6) {
-                // Row 1: buddy name (left) ... agent badge + project pill + elapsed (right)
+                // Project identity leads; agent/risk/time remain scan metadata.
                 HStack(spacing: 6) {
-                    Text(buddy.name)
-                        .font(.system(size: 12, weight: .bold))
+                    Text(session.displayName)
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.white)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
 
                     Spacer(minLength: 4)
 
@@ -110,16 +161,6 @@ struct NotchExpandedView: View {
                     if let risk = session.permissionRisk {
                         PermissionBadge(risk: risk)
                     }
-
-                    Text(session.displayName)
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.8))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(4)
 
                     Text(elapsedString(since: session.lastActiveAt))
                         .font(.system(size: 9, weight: .medium, design: .monospaced))
@@ -136,6 +177,12 @@ struct NotchExpandedView: View {
                 ))
                     .font(.system(size: 11, weight: .regular))
                     .foregroundColor(.white.opacity(0.6))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                Text(buddy.name)
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.4))
                     .lineLimit(1)
                     .truncationMode(.tail)
 
@@ -749,4 +796,3 @@ struct NotchExpandedView: View {
         return text
     }
 }
-
