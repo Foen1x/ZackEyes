@@ -8,8 +8,6 @@ enum TimeWindowProgress {
 
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
-    static let overlapOpacity = 0.60
-    static let endpointOpacity = 0.65
     static let endpointWidth: CGFloat = 1
 
     static func elapsedFraction(
@@ -27,21 +25,35 @@ enum TimeWindowProgress {
     }
 
     static func endpointOffset(
-        elapsedFraction: Double,
+        fraction: Double,
         trackWidth: CGFloat,
+        anchor: ProgressFillAnchor = .leading,
         endpointWidth: CGFloat = TimeWindowProgress.endpointWidth
     ) -> CGFloat {
-        let position = trackWidth * CGFloat(max(0, min(1, elapsedFraction)))
+        let position = endpointPosition(fraction: fraction, trackWidth: trackWidth, anchor: anchor)
         return min(max(0, position - endpointWidth / 2), max(0, trackWidth - endpointWidth))
+    }
+
+    static func endpointPosition(
+        fraction: Double,
+        trackWidth: CGFloat,
+        anchor: ProgressFillAnchor
+    ) -> CGFloat {
+        let clamped = CGFloat(max(0, min(1, fraction)))
+        return anchor == .leading ? trackWidth * clamped : trackWidth * (1 - clamped)
     }
 }
 
 /// Shared quota usage track with an optional elapsed-window time layer.
 struct UsageProgressTrack: View {
     let fillFraction: Double
+    let fillAnchor: ProgressFillAnchor
     let hasData: Bool
     let usageColor: Color
     let timeMode: TimeProgressMode
+    let progressMode: ProgressMode
+    let leftProgressDirection: LeftProgressDirection
+    let timeOverlayOpacity: Double
     let resetsAt: Date?
     let windowDuration: TimeInterval
     var height: CGFloat = 6
@@ -90,18 +102,23 @@ struct UsageProgressTrack: View {
 
     @ViewBuilder
     private func overlapLayers(elapsed: Double, width: CGFloat) -> some View {
+        let time = ProgressPresentation(
+            spentFraction: elapsed,
+            mode: progressMode,
+            leftDirection: leftProgressDirection
+        )
         let order = TimeWindowProgress.layerOrder(
-            elapsedFraction: elapsed,
+            elapsedFraction: time.fraction,
             usageFraction: hasData ? clampedFill : 0
         )
 
         ZStack(alignment: .leading) {
             if order == .belowUsage {
-                timeLayer(elapsed: elapsed, width: width)
+                timeLayer(presentation: time, width: width)
             }
             usageLayer(width: width)
             if order == .aboveUsage {
-                timeLayer(elapsed: elapsed, width: width)
+                timeLayer(presentation: time, width: width)
             }
         }
     }
@@ -112,29 +129,51 @@ struct UsageProgressTrack: View {
             RoundedRectangle(cornerRadius: height / 2)
                 .fill(usageColor)
                 .frame(width: width * CGFloat(clampedFill), height: height)
+                .frame(width: width, height: height, alignment: alignment(for: fillAnchor))
         }
     }
 
-    private func timeLayer(elapsed: Double, width: CGFloat) -> some View {
-        ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: height / 2)
-                .fill(overlapColor.opacity(TimeWindowProgress.overlapOpacity))
-                .frame(width: width * CGFloat(elapsed), height: height)
+    @ViewBuilder
+    private func timeLayer(presentation: ProgressPresentation, width: CGFloat) -> some View {
+        let overlayOpacity = TimeOverlayOpacity.normalized(timeOverlayOpacity)
+        if overlayOpacity > 0 {
+            let emphasisOpacity = TimeOverlayOpacity.emphasisOpacity(for: overlayOpacity)
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: height / 2)
+                    .fill(overlapColor.opacity(overlayOpacity))
+                    .frame(width: width * CGFloat(presentation.fraction), height: height)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: height / 2)
+                            .stroke(overlapColor.opacity(emphasisOpacity), lineWidth: 1)
+                    }
+                    .frame(width: width, height: height, alignment: alignment(for: presentation.anchor))
 
-            Rectangle()
-                .fill(overlapColor.opacity(TimeWindowProgress.endpointOpacity))
-                .frame(width: TimeWindowProgress.endpointWidth, height: height)
-                .offset(x: TimeWindowProgress.endpointOffset(
-                    elapsedFraction: elapsed,
-                    trackWidth: width
-                ))
+                Rectangle()
+                    .fill(overlapColor.opacity(emphasisOpacity))
+                    .frame(width: TimeWindowProgress.endpointWidth, height: height)
+                    .offset(x: TimeWindowProgress.endpointOffset(
+                        fraction: presentation.fraction,
+                        trackWidth: width,
+                        anchor: presentation.anchor
+                    ))
+            }
         }
     }
 
     private func clockMarker(elapsed: Double, width: CGFloat) -> some View {
+        let presentation = ProgressPresentation(
+            spentFraction: elapsed,
+            mode: progressMode,
+            leftDirection: leftProgressDirection
+        )
         let iconSize = max(9, height + 4)
         let radius = iconSize / 2
-        let centerX = min(max(radius, width * CGFloat(elapsed)), max(radius, width - radius))
+        let endpoint = TimeWindowProgress.endpointPosition(
+            fraction: presentation.fraction,
+            trackWidth: width,
+            anchor: presentation.anchor
+        )
+        let centerX = min(max(radius, endpoint), max(radius, width - radius))
 
         return ZStack {
             Image(systemName: "clock.fill")
@@ -159,5 +198,9 @@ struct UsageProgressTrack: View {
 
     private var clampedFill: Double {
         max(0, min(1, fillFraction))
+    }
+
+    private func alignment(for anchor: ProgressFillAnchor) -> Alignment {
+        anchor == .leading ? .leading : .trailing
     }
 }

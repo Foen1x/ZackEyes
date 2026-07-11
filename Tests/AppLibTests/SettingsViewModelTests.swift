@@ -25,6 +25,9 @@ struct SettingsViewModelTests {
         model.setCompactAgent(.codex)
         model.setShowTodayConsumption(false)
         model.setTimeProgressMode(.overlap)
+        model.setProgressMode(.left)
+        model.setLeftProgressDirection(.rightToLeft)
+        model.setTimeOverlayOpacity(0.44)
         model.setNotifyWaitingForInput(false)
 
         #expect(store.loadNotchVisibility() == .whenActive)
@@ -33,6 +36,12 @@ struct SettingsViewModelTests {
         #expect(usage.showTodayConsumption == false)
         #expect(store.loadTimeProgressMode() == .overlap)
         #expect(usage.timeProgressMode == .overlap)
+        #expect(store.loadProgressMode() == .left)
+        #expect(usage.progressMode == .left)
+        #expect(store.loadLeftProgressDirection() == .rightToLeft)
+        #expect(usage.leftProgressDirection == .rightToLeft)
+        #expect(store.loadTimeOverlayOpacity() == 0.4)
+        #expect(usage.timeOverlayOpacity == 0.4)
         #expect(store.loadNotifyWaitingForInput() == false)
     }
 

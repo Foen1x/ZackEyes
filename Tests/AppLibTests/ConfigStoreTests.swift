@@ -289,6 +289,52 @@ final class ConfigStoreTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: path, encoding: .utf8), garbage)
     }
 
+    // MARK: - Progress presentation
+
+    func testProgressPresentationDefaults() {
+        let store = ConfigStore(directory: tmpDir.path)
+        XCTAssertEqual(store.loadProgressMode(), .spent)
+        XCTAssertEqual(store.loadLeftProgressDirection(), .leftToRight)
+        XCTAssertEqual(store.loadTimeOverlayOpacity(), 0.4)
+    }
+
+    func testProgressPresentationRoundTripsAndPreservesOtherKeys() {
+        let store = ConfigStore(directory: tmpDir.path)
+        store.saveCompactAgent(.codex)
+        store.saveProgressMode(.left)
+        store.saveLeftProgressDirection(.rightToLeft)
+        store.saveTimeOverlayOpacity(0.56)
+
+        XCTAssertEqual(store.loadCompactAgent(), .codex)
+        XCTAssertEqual(store.loadProgressMode(), .left)
+        XCTAssertEqual(store.loadLeftProgressDirection(), .rightToLeft)
+        XCTAssertEqual(store.loadTimeOverlayOpacity(), 0.6)
+    }
+
+    func testProgressOpacityNormalizesEditedValues() throws {
+        let configURL = tmpDir.appendingPathComponent("config.json")
+        try #"{"hotkey":{"keyCode":6,"modifiers":["command"]},"timeOverlayOpacity":-2}"#
+            .write(to: configURL, atomically: true, encoding: .utf8)
+        XCTAssertEqual(ConfigStore(directory: tmpDir.path).loadTimeOverlayOpacity(), 0)
+
+        try #"{"hotkey":{"keyCode":6,"modifiers":["command"]},"timeOverlayOpacity":0.46}"#
+            .write(to: configURL, atomically: true, encoding: .utf8)
+        XCTAssertEqual(ConfigStore(directory: tmpDir.path).loadTimeOverlayOpacity(), 0.5)
+    }
+
+    func testProgressPresentationSavesAbortWhenFileCorrupt() throws {
+        let store = ConfigStore(directory: tmpDir.path)
+        let path = tmpDir.appendingPathComponent("config.json")
+        let garbage = "not json — preserve me"
+        try garbage.write(to: path, atomically: true, encoding: .utf8)
+
+        store.saveProgressMode(.left)
+        store.saveLeftProgressDirection(.rightToLeft)
+        store.saveTimeOverlayOpacity(0.7)
+
+        XCTAssertEqual(try String(contentsOf: path, encoding: .utf8), garbage)
+    }
+
     // MARK: - #169 Notify waiting for input
 
     func testNotifyWaitingForInputDefaultsTrue() {

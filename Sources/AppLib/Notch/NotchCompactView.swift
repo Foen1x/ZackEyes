@@ -193,18 +193,23 @@ struct NotchCompactView: View {
             Text(label)
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.white.opacity(0.55))
-            Text(remainingString(usedPct))
+            Text(progressString(usedPct))
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundColor(remainingColor(usedPct))
+                .foregroundColor(quotaColor(usedPct))
         }
     }
 
-    private func remainingString(_ usedPct: Double?) -> String {
+    private func progressString(_ usedPct: Double?) -> String {
         guard let used = usedPct else { return "—" }
-        return String(format: "%.0f%%", max(0, 100 - used))
+        let presentation = ProgressPresentation(
+            spentFraction: used / 100,
+            mode: usageTracker.progressMode,
+            leftDirection: usageTracker.leftProgressDirection
+        )
+        return "\(presentation.percent)%"
     }
 
-    private func remainingColor(_ usedPct: Double?) -> Color {
+    private func quotaColor(_ usedPct: Double?) -> Color {
         guard let used = usedPct else { return .white.opacity(0.4) }
         return .usageLevelColor(usedPct: used)
     }

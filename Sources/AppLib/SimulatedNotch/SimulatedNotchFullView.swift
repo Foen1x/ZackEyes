@@ -70,18 +70,15 @@ struct SimulatedNotchFullView: View {
                 )
                 // 7d does NOT inherit the account-level block flag — an
                 // out-of-credits / 5h-window block shouldn't paint the 7d row
-                // "limit" too (its weekly budget isn't exhausted). While blocked
-                // it shows the real weekly usage as "N% used" (not the misleading
-                // "100%" remaining), so the 5h row stays the single headline
-                // indicator. 7d only shows "limit" if its OWN used% hits 100.
+                // "limit" too. Its own percentage keeps following the selected
+                // Spent/Left presentation while the 5h row is the headline block.
                 splitUsageRow(
                     label: "7d",
                     windowDuration: TimeWindowProgress.sevenDays,
                     leftPct: snap.sevenDayUsedPct,
                     leftResetsAt: snap.sevenDayResetsAt,
                     rightPct: snap.codexSevenDayUsedPct,
-                    rightResetsAt: snap.codexSevenDayResetsAt,
-                    rightUsedLabel: snap.codexLimitReached
+                    rightResetsAt: snap.codexSevenDayResetsAt
                 )
             } else {
                 // Single-agent path. Claude shows when only Claude (or
@@ -102,15 +99,14 @@ struct SimulatedNotchFullView: View {
                 )
                 // 7d shows its own usage — only the 5h row carries the
                 // account-level block flag (see the split path above). While
-                // codex is blocked, 7d shows "N% used" so its low weekly window
-                // doesn't read as a misleading "100% remaining".
+                // codex is blocked, 7d still presents its own window according
+                // to the selected Spent/Left preference.
                 usageBar(
                     label: "7d",
                     windowDuration: TimeWindowProgress.sevenDays,
                     agent: useCodex ? .codex : .claude,
                     usedPct: useCodex ? snap.codexSevenDayUsedPct : snap.sevenDayUsedPct,
-                    resetsAt: useCodex ? snap.codexSevenDayResetsAt : snap.sevenDayResetsAt,
-                    usedLabel: codexLimit
+                    resetsAt: useCodex ? snap.codexSevenDayResetsAt : snap.sevenDayResetsAt
                 )
             }
             if usageTracker.showTodayConsumption, snap.hasConsumption {
@@ -148,7 +144,6 @@ struct SimulatedNotchFullView: View {
         rightPct: Double?, rightResetsAt: Date?,
         leftETA: CapETA? = nil, rightETA: CapETA? = nil,
         rightLimitReached: Bool = false, rightLimitResetsAt: Date? = nil,
-        rightUsedLabel: Bool = false,
         @ViewBuilder trailing: () -> Trailing = { EmptyView() }
     ) -> some View {
         HStack(alignment: .center, spacing: 10) {
@@ -162,8 +157,7 @@ struct SimulatedNotchFullView: View {
                           windowDuration: windowDuration, eta: leftETA)
                 splitHalf(agent: .codex, usedPct: rightPct, resetsAt: rightResetsAt,
                           windowDuration: windowDuration, eta: rightETA,
-                          limitReached: rightLimitReached, limitResetsAt: rightLimitResetsAt,
-                          usedLabel: rightUsedLabel)
+                          limitReached: rightLimitReached, limitResetsAt: rightLimitResetsAt)
             }
 
             // Trailing column: always reserves the same width so both
@@ -182,10 +176,14 @@ struct SimulatedNotchFullView: View {
     private func splitHalf(agent: AgentKind, usedPct: Double?, resetsAt: Date?,
                            windowDuration: TimeInterval,
                            eta: CapETA? = nil,
-                           limitReached: Bool = false, limitResetsAt: Date? = nil,
-                           usedLabel: Bool = false) -> some View {
+                           limitReached: Bool = false, limitResetsAt: Date? = nil) -> some View {
         let cell = UsageCellState.make(usedPct: usedPct, limitReached: limitReached)
         let used = usedPct ?? 0
+        let presentation = ProgressPresentation(
+            spentFraction: used / 100,
+            mode: usageTracker.progressMode,
+            leftDirection: usageTracker.leftProgressDirection
+        )
         let color = cell.isExhausted ? Color.usageLimitRed : barColor(for: used)
         let hasData = usedPct != nil || limitReached
         let accent = AgentBadge.accentColor(for: agent)
@@ -206,13 +204,7 @@ struct SimulatedNotchFullView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(Color.usageLimitRed)
                 } else if hasData {
-                    // `usedLabel` shows "N% used" (unambiguous) instead of the
-                    // remaining %. Used on the codex 7d cell while the account
-                    // is blocked, so the still-low weekly window doesn't read as
-                    // a misleading "100%" next to the 5h "limit".
-                    Text(usedLabel
-                        ? String(format: "%d%% used", Int(used.rounded()))
-                        : String(format: "%d%%", cell.remainingPct))
+                    Text(presentation.explicitLabel)
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(color)
                 } else {
@@ -236,10 +228,14 @@ struct SimulatedNotchFullView: View {
                 }
             }
             UsageProgressTrack(
-                fillFraction: cell.fillFraction,
+                fillFraction: cell.isExhausted ? 1 : presentation.fraction,
+                fillAnchor: cell.isExhausted ? .leading : presentation.anchor,
                 hasData: hasData,
                 usageColor: color,
                 timeMode: usageTracker.timeProgressMode,
+                progressMode: usageTracker.progressMode,
+                leftProgressDirection: usageTracker.leftProgressDirection,
+                timeOverlayOpacity: usageTracker.timeOverlayOpacity,
                 resetsAt: resetsAt,
                 windowDuration: windowDuration,
                 height: 5
@@ -285,11 +281,15 @@ struct SimulatedNotchFullView: View {
         eta: CapETA? = nil,
         limitReached: Bool = false,
         limitResetsAt: Date? = nil,
-        usedLabel: Bool = false,
         @ViewBuilder trailing: () -> Trailing = { EmptyView() }
     ) -> some View {
         let cell = UsageCellState.make(usedPct: usedPct, limitReached: limitReached)
         let used = usedPct ?? 0
+        let presentation = ProgressPresentation(
+            spentFraction: used / 100,
+            mode: usageTracker.progressMode,
+            leftDirection: usageTracker.leftProgressDirection
+        )
         let color = cell.isExhausted ? Color.usageLimitRed : barColor(for: used)
         let hasData = usedPct != nil || limitReached
         let accent = AgentBadge.accentColor(for: agent)
@@ -317,9 +317,7 @@ struct SimulatedNotchFullView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(Color.usageLimitRed)
                 } else if hasData {
-                    Text(usedLabel
-                        ? String(format: "%d%% used", Int(used.rounded()))
-                        : String(format: "%d%% remaining", cell.remainingPct))
+                    Text(presentation.explicitLabel)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(color)
                 } else {
@@ -342,10 +340,14 @@ struct SimulatedNotchFullView: View {
             }
 
             UsageProgressTrack(
-                fillFraction: cell.fillFraction,
+                fillFraction: cell.isExhausted ? 1 : presentation.fraction,
+                fillAnchor: cell.isExhausted ? .leading : presentation.anchor,
                 hasData: hasData,
                 usageColor: color,
                 timeMode: usageTracker.timeProgressMode,
+                progressMode: usageTracker.progressMode,
+                leftProgressDirection: usageTracker.leftProgressDirection,
+                timeOverlayOpacity: usageTracker.timeOverlayOpacity,
                 resetsAt: resetsAt,
                 windowDuration: windowDuration
             )

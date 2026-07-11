@@ -110,6 +110,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         sessionStore.codexPriceLookup = { [weak ps] model in ps?.price(for: model) }
         usageTracker.showTodayConsumption = ConfigStore().loadShowTodayConsumption()
         usageTracker.timeProgressMode = ConfigStore().loadTimeProgressMode()
+        usageTracker.progressMode = ConfigStore().loadProgressMode()
+        usageTracker.leftProgressDirection = ConfigStore().loadLeftProgressDirection()
+        usageTracker.timeOverlayOpacity = ConfigStore().loadTimeOverlayOpacity()
         // Real-notch path doesn't go through SimulatedNotchController, so the
         // tracker would never start its 30s refresh loop and the menu-bar
         // star would stay white forever. Start it here unconditionally —

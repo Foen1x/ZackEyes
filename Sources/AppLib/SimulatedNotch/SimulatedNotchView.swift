@@ -65,12 +65,12 @@ struct SimulatedNotchView: View {
         if let urgent = eta?.pillUrgentLabel {
             urgentETAChip(urgent)
         } else {
-            percentageChip(label: "5h", usedPct: fivePct, fallbackTokens: snap.tokens5h, scale: .fiveHour)
+            percentageChip(label: "5h", usedPct: fivePct)
         }
         Text("·")
             .font(.system(size: 12))
             .foregroundColor(.white.opacity(0.3))
-        percentageChip(label: "7d", usedPct: sevenPct, fallbackTokens: snap.tokens7d, scale: .sevenDay)
+        percentageChip(label: "7d", usedPct: sevenPct)
     }
 
     @ViewBuilder
@@ -83,28 +83,32 @@ struct SimulatedNotchView: View {
     }
 
     @ViewBuilder
-    private func percentageChip(label: String, usedPct: Double?, fallbackTokens: Int, scale: TokenScale) -> some View {
+    private func percentageChip(label: String, usedPct: Double?) -> some View {
         HStack(spacing: 3) {
             Text(label)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.white.opacity(0.55))
-            Text(remainingString(usedPct: usedPct, fallbackTokens: fallbackTokens, scale: scale))
+            Text(progressString(usedPct: usedPct))
                 .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundColor(remainingColor(usedPct: usedPct, fallbackTokens: fallbackTokens, scale: scale))
+                .foregroundColor(quotaColor(usedPct: usedPct))
         }
     }
 
     /// "82%" if real data exists, otherwise "—" or estimated value.
-    private func remainingString(usedPct: Double?, fallbackTokens: Int, scale: TokenScale) -> String {
+    private func progressString(usedPct: Double?) -> String {
         if let used = usedPct {
-            let remaining = max(0, 100.0 - used)
-            return String(format: "%.0f%%", remaining)
+            let presentation = ProgressPresentation(
+                spentFraction: used / 100,
+                mode: usageTracker.progressMode,
+                leftDirection: usageTracker.leftProgressDirection
+            )
+            return "\(presentation.percent)%"
         }
         // No real data — show em-dash to make it clear we're guessing
         return "—"
     }
 
-    private func remainingColor(usedPct: Double?, fallbackTokens: Int, scale: TokenScale) -> Color {
+    private func quotaColor(usedPct: Double?) -> Color {
         let usedRatio: Double
         if let used = usedPct {
             usedRatio = used / 100.0
@@ -130,7 +134,6 @@ struct SimulatedNotchView: View {
             label: "5h",
             usedPct: fivePct,
             resetsAt: fiveResets,
-            scale: .fiveHour,
             eta: (agent == .codex) ? snap.codexFiveHourETA : snap.fiveHourETA
         )
 
@@ -141,8 +144,7 @@ struct SimulatedNotchView: View {
         usageStat(
             label: "7d",
             usedPct: sevenPct,
-            resetsAt: sevenResets,
-            scale: .sevenDay
+            resetsAt: sevenResets
         )
 
         Spacer(minLength: 4)
@@ -159,14 +161,14 @@ struct SimulatedNotchView: View {
 
     @ViewBuilder
     private func usageStat(label: String, usedPct: Double?, resetsAt: Date?,
-                           scale: TokenScale, eta: CapETA? = nil) -> some View {
+                           eta: CapETA? = nil) -> some View {
         HStack(spacing: 4) {
             Text(label)
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundColor(.white.opacity(0.55))
-            Text(remainingString(usedPct: usedPct, fallbackTokens: 0, scale: scale))
+            Text(progressString(usedPct: usedPct))
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(remainingColor(usedPct: usedPct, fallbackTokens: 0, scale: scale))
+                .foregroundColor(quotaColor(usedPct: usedPct))
             // #86/#108 — show the ETA badge AND the reset countdown; they don't
             // compete (ETA = when you run dry, reset = when budget returns), and
             // an urgent ETA like ⚡~10min is exactly when you want both. CapETABadge
@@ -180,11 +182,6 @@ struct SimulatedNotchView: View {
         }
     }
 
-    // MARK: - Types
-
-    private enum TokenScale {
-        case fiveHour, sevenDay
-    }
 }
 
 // `NotchShape` now lives in Sources/AppLib/Notch/NotchShape.swift (shared by

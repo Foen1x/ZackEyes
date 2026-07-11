@@ -137,6 +137,38 @@ struct SettingsRootView: View {
                     .frame(width: 180)
                 }
 
+                settingRow("Progress mode") {
+                    Picker("", selection: binding(viewModel.progressMode, viewModel.setProgressMode)) {
+                        ForEach(ProgressMode.allCases, id: \.self) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                }
+
+                if viewModel.progressMode == .left {
+                    settingRow("Fill direction") {
+                        Picker("", selection: binding(
+                            viewModel.leftProgressDirection,
+                            viewModel.setLeftProgressDirection
+                        )) {
+                            Image(systemName: "arrow.right")
+                                .accessibilityLabel("Left to right")
+                                .help("Fill from left to right")
+                                .tag(LeftProgressDirection.leftToRight)
+                            Image(systemName: "arrow.left")
+                                .accessibilityLabel("Right to left")
+                                .help("Fill from right to left")
+                                .tag(LeftProgressDirection.rightToLeft)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .frame(width: 120)
+                    }
+                }
+
                 settingRow("Window elapsed") {
                     Picker("", selection: binding(
                         viewModel.timeProgressMode,
@@ -149,6 +181,26 @@ struct SettingsRootView: View {
                     .labelsHidden()
                     .pickerStyle(.segmented)
                     .frame(width: 280)
+                }
+
+                if viewModel.timeProgressMode == .overlap {
+                    settingRow("Overlay opacity") {
+                        HStack(spacing: 8) {
+                            Slider(
+                                value: binding(
+                                    viewModel.timeOverlayOpacity,
+                                    viewModel.setTimeOverlayOpacity
+                                ),
+                                in: 0...1,
+                                step: 0.1
+                            )
+                            .frame(width: 220)
+                            Text("\(Int((viewModel.timeOverlayOpacity * 100).rounded()))%")
+                                .font(.system(size: 12, design: .monospaced))
+                                .frame(width: 36, alignment: .trailing)
+                        }
+                        .frame(width: 280, alignment: .leading)
+                    }
                 }
 
                 settingRow("Today's consumption") {

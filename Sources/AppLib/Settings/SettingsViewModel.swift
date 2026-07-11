@@ -9,6 +9,9 @@ final class SettingsViewModel: ObservableObject {
     @Published private(set) var compactAgent: AgentKind
     @Published private(set) var showTodayConsumption: Bool
     @Published private(set) var timeProgressMode: TimeProgressMode
+    @Published private(set) var progressMode: ProgressMode
+    @Published private(set) var leftProgressDirection: LeftProgressDirection
+    @Published private(set) var timeOverlayOpacity: Double
     @Published private(set) var hotkey: HotKeyConfig
     @Published private(set) var theme: BuddyTheme
     @Published private(set) var notificationSound: String
@@ -39,6 +42,9 @@ final class SettingsViewModel: ObservableObject {
         compactAgent = configStore.loadCompactAgent()
         showTodayConsumption = configStore.loadShowTodayConsumption()
         timeProgressMode = configStore.loadTimeProgressMode()
+        progressMode = configStore.loadProgressMode()
+        leftProgressDirection = configStore.loadLeftProgressDirection()
+        timeOverlayOpacity = configStore.loadTimeOverlayOpacity()
         hotkey = configStore.load()
         theme = loadedTheme
         notificationSound = configStore.loadNotificationSound()
@@ -83,6 +89,28 @@ final class SettingsViewModel: ObservableObject {
         configStore.saveTimeProgressMode(mode)
         timeProgressMode = mode
         usageTracker.timeProgressMode = mode
+    }
+
+    func setProgressMode(_ mode: ProgressMode) {
+        guard mode != progressMode else { return }
+        configStore.saveProgressMode(mode)
+        progressMode = mode
+        usageTracker.progressMode = mode
+    }
+
+    func setLeftProgressDirection(_ direction: LeftProgressDirection) {
+        guard direction != leftProgressDirection else { return }
+        configStore.saveLeftProgressDirection(direction)
+        leftProgressDirection = direction
+        usageTracker.leftProgressDirection = direction
+    }
+
+    func setTimeOverlayOpacity(_ opacity: Double) {
+        let normalized = TimeOverlayOpacity.normalized(opacity)
+        guard normalized != timeOverlayOpacity else { return }
+        configStore.saveTimeOverlayOpacity(normalized)
+        timeOverlayOpacity = normalized
+        usageTracker.timeOverlayOpacity = normalized
     }
 
     func setTheme(_ value: BuddyTheme) {

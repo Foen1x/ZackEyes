@@ -63,7 +63,11 @@ struct UsageBarsView<Trailing: View>: View {
         @ViewBuilder trailing: () -> T
     ) -> some View {
         let used = usedPct ?? 0
-        let remaining = max(0, 100 - used)
+        let presentation = ProgressPresentation(
+            spentFraction: used / 100,
+            mode: usageTracker.progressMode,
+            leftDirection: usageTracker.leftProgressDirection
+        )
         let color = barColor(for: used)
         let hasData = usedPct != nil
 
@@ -75,7 +79,7 @@ struct UsageBarsView<Trailing: View>: View {
                     .frame(width: 22, alignment: .leading)
 
                 if hasData {
-                    Text(String(format: "%.0f%% remaining", remaining))
+                    Text(presentation.explicitLabel)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(color)
                 } else {
@@ -100,10 +104,14 @@ struct UsageBarsView<Trailing: View>: View {
             }
 
             UsageProgressTrack(
-                fillFraction: used / 100,
+                fillFraction: presentation.fraction,
+                fillAnchor: presentation.anchor,
                 hasData: hasData,
                 usageColor: color,
                 timeMode: usageTracker.timeProgressMode,
+                progressMode: usageTracker.progressMode,
+                leftProgressDirection: usageTracker.leftProgressDirection,
+                timeOverlayOpacity: usageTracker.timeOverlayOpacity,
                 resetsAt: resetsAt,
                 windowDuration: windowDuration
             )

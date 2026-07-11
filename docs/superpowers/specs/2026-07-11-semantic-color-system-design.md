@@ -21,9 +21,9 @@ The existing deep ochre `#A16B24` remains a component token for the physical clo
 
 ## Overlap Rendering
 
-- Render elapsed time with light gray `#C9CDD3` at 60% opacity.
+- Render elapsed time with light gray `#C9CDD3` at a user-selected 0%-100% opacity in 10% steps, defaulting to 40%.
 - Keep quota usage opaque and keep the existing dynamic layer order.
-- Add a 1px light-gray endpoint at 65% opacity inside the clipped track.
+- Add a same-color 1px border and endpoint 30 percentage points more opaque than the fill, capped at 100%.
 - Use normal alpha compositing; do not use multiply or screen blending.
 - Preserve fill length and endpoint geometry so color is not the only differentiator.
 
