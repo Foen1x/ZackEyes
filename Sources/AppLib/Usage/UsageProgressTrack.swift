@@ -9,6 +9,8 @@ enum TimeWindowProgress {
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
     static let overlapOpacity = 0.32
+    static let endpointOpacity = 0.65
+    static let endpointWidth: CGFloat = 1
 
     static func elapsedFraction(
         now: Date,
@@ -23,6 +25,15 @@ enum TimeWindowProgress {
     static func layerOrder(elapsedFraction: Double, usageFraction: Double) -> LayerOrder {
         elapsedFraction > usageFraction ? .belowUsage : .aboveUsage
     }
+
+    static func endpointOffset(
+        elapsedFraction: Double,
+        trackWidth: CGFloat,
+        endpointWidth: CGFloat = TimeWindowProgress.endpointWidth
+    ) -> CGFloat {
+        let position = trackWidth * CGFloat(max(0, min(1, elapsedFraction)))
+        return min(max(0, position - endpointWidth / 2), max(0, trackWidth - endpointWidth))
+    }
 }
 
 /// Shared quota usage track with an optional elapsed-window time layer.
@@ -35,8 +46,8 @@ struct UsageProgressTrack: View {
     let windowDuration: TimeInterval
     var height: CGFloat = 6
 
-    private let timeColor = Color(red: 0.63, green: 0.42, blue: 0.14)
-    private let overlapColor = Color(red: 0.94, green: 0.48, blue: 0.10)
+    private let timeColor = AppColors.timeMarker.color
+    private let overlapColor = AppColors.information.color
 
     var body: some View {
         GeometryReader { geometry in
@@ -105,9 +116,19 @@ struct UsageProgressTrack: View {
     }
 
     private func timeLayer(elapsed: Double, width: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: height / 2)
-            .fill(overlapColor.opacity(TimeWindowProgress.overlapOpacity))
-            .frame(width: width * CGFloat(elapsed), height: height)
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: height / 2)
+                .fill(overlapColor.opacity(TimeWindowProgress.overlapOpacity))
+                .frame(width: width * CGFloat(elapsed), height: height)
+
+            Rectangle()
+                .fill(overlapColor.opacity(TimeWindowProgress.endpointOpacity))
+                .frame(width: TimeWindowProgress.endpointWidth, height: height)
+                .offset(x: TimeWindowProgress.endpointOffset(
+                    elapsedFraction: elapsed,
+                    trackWidth: width
+                ))
+        }
     }
 
     private func clockMarker(elapsed: Double, width: CGFloat) -> some View {

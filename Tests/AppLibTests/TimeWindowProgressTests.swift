@@ -70,4 +70,12 @@ struct TimeWindowProgressTests {
     func overlapIsTenPercentagePointsMoreTransparent() {
         #expect(TimeWindowProgress.overlapOpacity == 0.32)
     }
+
+    @Test
+    func endpointStaysInsideTrackAtEveryBoundary() {
+        #expect(TimeWindowProgress.endpointOffset(elapsedFraction: 0, trackWidth: 100) == 0)
+        #expect(TimeWindowProgress.endpointOffset(elapsedFraction: 0.5, trackWidth: 100) == 49.5)
+        #expect(TimeWindowProgress.endpointOffset(elapsedFraction: 1, trackWidth: 100) == 99)
+        #expect(TimeWindowProgress.endpointOffset(elapsedFraction: 2, trackWidth: 100) == 99)
+    }
 }
