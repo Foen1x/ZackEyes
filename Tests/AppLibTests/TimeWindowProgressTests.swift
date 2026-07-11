@@ -41,4 +41,33 @@ struct TimeWindowProgressTests {
         #expect(TimeWindowProgress.elapsedFraction(now: now, resetsAt: now, duration: 0) == nil)
         #expect(TimeWindowProgress.elapsedFraction(now: now, resetsAt: now, duration: -.infinity) == nil)
     }
+
+    @Test
+    func longerElapsedProgressRendersBelowUsage() {
+        #expect(
+            TimeWindowProgress.layerOrder(elapsedFraction: 0.7, usageFraction: 0.4)
+                == .belowUsage
+        )
+    }
+
+    @Test
+    func shorterElapsedProgressRendersAboveUsage() {
+        #expect(
+            TimeWindowProgress.layerOrder(elapsedFraction: 0.3, usageFraction: 0.4)
+                == .aboveUsage
+        )
+    }
+
+    @Test
+    func equalProgressRendersTimeAboveUsage() {
+        #expect(
+            TimeWindowProgress.layerOrder(elapsedFraction: 0.4, usageFraction: 0.4)
+                == .aboveUsage
+        )
+    }
+
+    @Test
+    func overlapIsTenPercentagePointsMoreTransparent() {
+        #expect(TimeWindowProgress.overlapOpacity == 0.32)
+    }
 }

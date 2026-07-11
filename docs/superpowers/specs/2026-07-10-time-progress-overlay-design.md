@@ -10,7 +10,7 @@ Persist `timeProgressMode` in `~/.zackeyes/config.json` with three values:
 
 - `off` (default): existing bars are unchanged.
 - `icon`: a deep ochre clock sits at the elapsed-time position. It straddles the track vertically; the portion intersecting the track is hollow so the full symbol stays legible over every usage color.
-- `overlap`: a translucent orange fill overlays the existing track from the leading edge to the elapsed-time position.
+- `overlap`: a translucent orange fill runs from the leading edge to the elapsed-time position. When elapsed time is longer than quota usage it renders below the usage fill; otherwise it renders above, including when both are equal. Its opacity is 0.32.
 
 The setting appears in Settings > General > Dynamic Island as an `Off / Icon / Overlap` segmented picker and applies immediately.
 
@@ -32,6 +32,8 @@ No reset date means no time overlay. The calculation lives in a pure helper and 
 ## Rendering
 
 Add one shared `UsageProgressTrack` SwiftUI view used by the physical-notch full bars and both simulated-notch bar layouts. It renders the neutral track, quota consumption, and optional time layer in a stable 5/6pt frame. A `TimelineView` refreshes the time layer every 30 seconds without requiring new hook data.
+
+The bundled Rock, F1, and Silicon sound files and their original theme mappings remain unchanged. Exact filename-list tests guard this unrelated settings surface from regression.
 
 The icon center is clamped by half its width at both ends, preventing clipping at 0% and 100%. The hollow band is produced inside the icon compositing group and never cuts the underlying quota bar.
 

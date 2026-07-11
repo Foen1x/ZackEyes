@@ -1,8 +1,14 @@
 import SwiftUI
 
 enum TimeWindowProgress {
+    enum LayerOrder {
+        case belowUsage
+        case aboveUsage
+    }
+
     static let fiveHours: TimeInterval = 5 * 60 * 60
     static let sevenDays: TimeInterval = 7 * 24 * 60 * 60
+    static let overlapOpacity = 0.32
 
     static func elapsedFraction(
         now: Date,
@@ -12,6 +18,10 @@ enum TimeWindowProgress {
         guard duration.isFinite, duration > 0, let resetsAt else { return nil }
         let remaining = resetsAt.timeIntervalSince(now)
         return max(0, min(1, 1 - remaining / duration))
+    }
+
+    static func layerOrder(elapsedFraction: Double, usageFraction: Double) -> LayerOrder {
+        elapsedFraction > usageFraction ? .belowUsage : .aboveUsage
     }
 }
 
@@ -34,12 +44,6 @@ struct UsageProgressTrack: View {
                 RoundedRectangle(cornerRadius: height / 2)
                     .fill(Color.white.opacity(0.10))
 
-                if hasData {
-                    RoundedRectangle(cornerRadius: height / 2)
-                        .fill(usageColor)
-                        .frame(width: geometry.size.width * CGFloat(clampedFill))
-                }
-
                 if timeMode == .overlap, resetsAt != nil {
                     TimelineView(.periodic(from: .now, by: 30)) { context in
                         if let elapsed = TimeWindowProgress.elapsedFraction(
@@ -47,9 +51,11 @@ struct UsageProgressTrack: View {
                             resetsAt: resetsAt,
                             duration: windowDuration
                         ) {
-                            timeLayer(elapsed: elapsed, width: geometry.size.width)
+                            overlapLayers(elapsed: elapsed, width: geometry.size.width)
                         }
                     }
+                } else {
+                    usageLayer(width: geometry.size.width)
                 }
             }
             .frame(height: height)
@@ -72,12 +78,36 @@ struct UsageProgressTrack: View {
     }
 
     @ViewBuilder
-    private func timeLayer(elapsed: Double, width: CGFloat) -> some View {
-        if timeMode == .overlap {
-            RoundedRectangle(cornerRadius: height / 2)
-                .fill(overlapColor.opacity(0.42))
-                .frame(width: width * CGFloat(elapsed), height: height)
+    private func overlapLayers(elapsed: Double, width: CGFloat) -> some View {
+        let order = TimeWindowProgress.layerOrder(
+            elapsedFraction: elapsed,
+            usageFraction: hasData ? clampedFill : 0
+        )
+
+        ZStack(alignment: .leading) {
+            if order == .belowUsage {
+                timeLayer(elapsed: elapsed, width: width)
+            }
+            usageLayer(width: width)
+            if order == .aboveUsage {
+                timeLayer(elapsed: elapsed, width: width)
+            }
         }
+    }
+
+    @ViewBuilder
+    private func usageLayer(width: CGFloat) -> some View {
+        if hasData {
+            RoundedRectangle(cornerRadius: height / 2)
+                .fill(usageColor)
+                .frame(width: width * CGFloat(clampedFill), height: height)
+        }
+    }
+
+    private func timeLayer(elapsed: Double, width: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: height / 2)
+            .fill(overlapColor.opacity(TimeWindowProgress.overlapOpacity))
+            .frame(width: width * CGFloat(elapsed), height: height)
     }
 
     private func clockMarker(elapsed: Double, width: CGFloat) -> some View {
