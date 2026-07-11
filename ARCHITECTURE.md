@@ -245,7 +245,7 @@ PricingStore.start()
 | `SimulatedNotchView` | `Sources/AppLib/SimulatedNotch/SimulatedNotchView.swift` | Compact / hoverWide 内容（5h/7d 剩余 + NotchShape）。读 `NotchModeStore.compactAgent` 决定显示哪个 agent 的配额 |
 | `SimulatedNotchFullView` | `Sources/AppLib/SimulatedNotch/SimulatedNotchFullView.swift` | Full 模式：5h/7d 进度条 header + 滚动 session 列表。当两 agent 都有数据时，header 自动左右切割（左 Claude / 右 Codex），用固定宽 gear 列保证 5h 与 7d 两行轨道对齐 |
 | `SimulatedNotchController` | `Sources/AppLib/SimulatedNotch/SimulatedNotchController.swift` | 三态形变控制器，hover intent 进入 full，外部点击退出，内容自适应高度。启动时从 `ConfigStore.loadCompactAgent()` 注水 `modeStore.compactAgent` 避免首帧闪烁；`#48` 起 `applyVisibility` 支持 `.whenActive` 自动显隐 |
-| `SimulatedNotchRoot` | `Sources/AppLib/SimulatedNotch/SimulatedNotchRoot.swift` | SwiftUI 根视图，compact/full 切换 + overlay 层叠。`NotchModeStore` 含 `@Published compactAgent: AgentKind` |
+| `SimulatedNotchRoot` | `Sources/AppLib/SimulatedNotch/SimulatedNotchRoot.swift` | SwiftUI 根视图，compact/full 只挂载当前可见内容树，避免隐藏 Full 列表的 Timer/无限动画持续占用主线程；透明尺寸骨架保持转场锚点稳定。`NotchModeStore` 含 `@Published compactAgent: AgentKind` |
 
 **菜单栏 fallback**
 | 模块 | 文件 | 职责 |

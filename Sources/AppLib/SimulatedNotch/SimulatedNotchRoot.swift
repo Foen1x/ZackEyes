@@ -29,6 +29,15 @@ public final class NotchModeStore: ObservableObject {
 
 }
 
+enum SimulatedNotchVisibleContent: Equatable {
+    case compact
+    case full
+
+    init(mode: NotchMode) {
+        self = mode == .full ? .full : .compact
+    }
+}
+
 /// Persistent SwiftUI root for the simulated notch panel.
 ///
 /// Layout strategy:
@@ -38,15 +47,11 @@ public final class NotchModeStore: ObservableObject {
 ///   `preferredContentSize` feedback loop — the controller is the single
 ///   source of truth for panel geometry, and SwiftUI just fills whatever
 ///   bounds it's handed.
-/// - The compact pill is the layout backbone (the parent measures it at
-///   220×32). The full panel is layered ON TOP via `.overlay()` so it
-///   does NOT contribute to the parent's layout — without this, the
-///   ZStack would size itself to its largest child (520×fullHeight) and
-///   push the compact pill off the visible viewport.
-/// - Each view carries its own `NotchShape` background; we do NOT use a
-///   shared morphing shape. The cross-fade is opacity + a small
-///   scale-from-top on the full panel, driven by the controller's
-///   `withAnimation` block in lock-step with the panel resize.
+/// - A transparent 220×32 layout backbone keeps the full panel top-centered
+///   without mounting the compact and full content trees simultaneously.
+/// - Each view carries its own `NotchShape` background. Mode changes replace
+///   the visible tree with an opacity/scale transition driven in lock-step
+///   with the controller's panel resize.
 struct SimulatedNotchRoot: View {
     @ObservedObject var viewModel: NotchViewModel
     @ObservedObject var usageTracker: UsageTracker
@@ -59,40 +64,38 @@ struct SimulatedNotchRoot: View {
     let fullHeight: CGFloat
     let onTap: () -> Void
 
-    private var isFull: Bool { modeStore.mode == .full }
-    private var cornerRadius: CGFloat { isFull ? 22 : 14 }
-
     var body: some View {
-        // The compact pill is the layout backbone — its 220×32 size is what
-        // the ZStack measures. The full panel is layered ON TOP via
-        // `.overlay()`, which deliberately does NOT contribute to the
-        // parent's layout. So the parent stays sized to the compact pill,
-        // and the full panel is free to extend beyond it without dragging
-        // the ZStack's coordinate space out to 520×480 (which would push
-        // the compact pill off-center).
-        SimulatedNotchView(
-            viewModel: viewModel,
-            usageTracker: usageTracker,
-            modeStore: modeStore,
-            isExpanded: false,
-            onTap: onTap
-        )
+        // Keep a non-rendering compact-size backbone so the full panel can
+        // extend from the same top-center anchor without affecting layout.
+        // Only mount the visible content: opacity(0) views keep timers and
+        // repeat-forever animations alive, which previously consumed the main
+        // thread while the full session list was hidden behind the compact pill.
+        Color.clear
         .frame(width: compactWidth, height: notchHeight)
-        .opacity(isFull ? 0 : 1)
-        .allowsHitTesting(!isFull)
         .overlay(alignment: .top) {
-            SimulatedNotchFullView(
-                viewModel: viewModel,
-                usageTracker: usageTracker,
-                modeStore: modeStore,
-                updateChecker: updateChecker,
-                downloader: downloader,
-                cornerRadius: 22
-            )
-            .frame(width: fullWidth, height: fullHeight)
-            .opacity(isFull ? 1 : 0)
-            .scaleEffect(isFull ? 1 : 0.85, anchor: .top)
-            .allowsHitTesting(isFull)
+            switch SimulatedNotchVisibleContent(mode: modeStore.mode) {
+            case .full:
+                SimulatedNotchFullView(
+                    viewModel: viewModel,
+                    usageTracker: usageTracker,
+                    modeStore: modeStore,
+                    updateChecker: updateChecker,
+                    downloader: downloader,
+                    cornerRadius: 22
+                )
+                .frame(width: fullWidth, height: fullHeight)
+                .transition(.opacity.combined(with: .scale(scale: 0.85, anchor: .top)))
+            case .compact:
+                SimulatedNotchView(
+                    viewModel: viewModel,
+                    usageTracker: usageTracker,
+                    modeStore: modeStore,
+                    isExpanded: false,
+                    onTap: onTap
+                )
+                .frame(width: compactWidth, height: notchHeight)
+                .transition(.opacity)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
