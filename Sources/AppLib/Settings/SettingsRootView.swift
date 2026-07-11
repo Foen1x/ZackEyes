@@ -127,7 +127,7 @@ struct SettingsRootView: View {
                     .frame(width: 280)
                 }
 
-                settingRow("Compact display") {
+                settingRow("Quota source") {
                     Picker("", selection: binding(viewModel.compactAgent, viewModel.setCompactAgent)) {
                         Text("Claude").tag(AgentKind.claude)
                         Text("Codex").tag(AgentKind.codex)
@@ -137,7 +137,7 @@ struct SettingsRootView: View {
                     .frame(width: 180)
                 }
 
-                settingRow("Time progress") {
+                settingRow("Window elapsed") {
                     Picker("", selection: binding(
                         viewModel.timeProgressMode,
                         viewModel.setTimeProgressMode
@@ -151,7 +151,7 @@ struct SettingsRootView: View {
                     .frame(width: 280)
                 }
 
-                settingRow("Today's usage") {
+                settingRow("Today's consumption") {
                     Toggle("", isOn: binding(
                         viewModel.showTodayConsumption,
                         viewModel.setShowTodayConsumption
