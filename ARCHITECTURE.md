@@ -196,7 +196,7 @@ PricingStore.start()
 |------|------|------|
 | `SettingsWindowController` | `Sources/AppLib/Settings/SettingsWindowController.swift` | 单例、非模态的标准 macOS 设置窗口；重复打开聚焦既有窗口，不阻塞权限 socket |
 | `SettingsViewModel` | `Sources/AppLib/Settings/SettingsViewModel.swift` | 统一加载/保存 `ConfigStore` 偏好并发送既有运行时通知；聚合 Hook Health |
-| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI；General 使用 Quota source / Window elapsed / Today's consumption 明确三类显示偏好 |
+| `SettingsRootView` | `Sources/AppLib/Settings/SettingsRootView.swift` | General / Appearance / Notifications / Integrations / About 五分区设置 UI；General 使用 Preferred quota source / Window elapsed / Today's consumption 明确三类显示偏好；首选 Agent 无配额数据时自动回退另一方 |
 
 **Hook 安装**
 | 模块 | 文件 | 职责 |

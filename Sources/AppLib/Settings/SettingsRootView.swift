@@ -127,7 +127,7 @@ struct SettingsRootView: View {
                     .frame(width: 280)
                 }
 
-                settingRow("Quota source") {
+                settingRow("Preferred quota source") {
                     Picker("", selection: binding(viewModel.compactAgent, viewModel.setCompactAgent)) {
                         Text("Claude").tag(AgentKind.claude)
                         Text("Codex").tag(AgentKind.codex)
@@ -352,7 +352,7 @@ struct SettingsRootView: View {
     ) -> some View {
         HStack(alignment: .center) {
             Text(title)
-                .frame(width: 132, alignment: .leading)
+                .frame(width: 160, alignment: .leading)
             content()
             Spacer(minLength: 0)
         }

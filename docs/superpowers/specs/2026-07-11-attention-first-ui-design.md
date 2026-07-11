@@ -26,7 +26,7 @@ Replace decorative working pulse with a static status mark. Errors take red prio
 
 ### Settings copy
 
-- `Compact display` becomes `Quota source`.
+- `Compact display` becomes `Preferred quota source` because the selected agent falls back when it has no quota data.
 - `Time progress` becomes `Window elapsed`.
 - `Today's usage` becomes `Today's consumption`.
 
